@@ -49,11 +49,13 @@ export function SiteHeader() {
           />
         </Link>
         <div className="mr-auto">
-          <Link href="/" className="block no-underline hover:bg-transparent">
-            <span className="block font-mono text-[26px] font-bold leading-none tracking-[-0.03em] text-foreground">
-              GIF<span className="bg-lime px-0.5">CHAIN</span>
-            </span>
-          </Link>
+          <h1 className="m-0">
+            <Link href="/" className="block no-underline hover:bg-transparent">
+              <span className="block font-mono text-[26px] font-bold leading-none tracking-[-0.03em] text-foreground">
+                GIF<span className="bg-lime px-0.5">CHAIN</span>
+              </span>
+            </Link>
+          </h1>
           <p className="mt-1 font-mono text-[11px] text-muted-foreground">
             the blockchain for NFTs &nbsp;{'\u00b7'}&nbsp; objects, not just balances
           </p>
