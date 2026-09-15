@@ -33,7 +33,9 @@ export async function SiteHeader() {
             all systems operational
           </span>
           <a
-            href="#"
+            href="https://ponsfamily.com/launchpad/0x7f166fb1b5bdd2e94e89d7bb35a13d85ec74850f"
+            target="_blank"
+            rel="noopener noreferrer"
             className="bg-lime px-1 font-bold text-foreground no-underline hover:bg-lime"
           >
             $GIFCHAIN
