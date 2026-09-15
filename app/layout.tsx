@@ -32,10 +32,6 @@ export async function generateMetadata(): Promise<Metadata> {
       description:
         'Search GIFCHAIN blocks, transactions, accounts, contracts and on-chain objects. Live head, object trie proofs and full transaction history.',
       generator: 'v0.app',
-      icons: {
-        icon: [{ url: '/gifchain-logo-nobg.png', type: 'image/png' }],
-        apple: '/gifchain-logo.png',
-      },
     }
   }
 
@@ -48,10 +44,6 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       'GIFCHAIN is an object-native network. Explore blocks, transactions, collections, wallets and every digital object on chain.',
     generator: 'v0.app',
-    icons: {
-      icon: [{ url: '/gifchain-logo-nobg.png', type: 'image/png' }],
-      apple: '/gifchain-logo.png',
-    },
   }
 }
 

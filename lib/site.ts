@@ -4,7 +4,7 @@
  *
  * Change ROOT_DOMAIN and everything else follows.
  */
-export const ROOT_DOMAIN = 'gif.com'
+export const ROOT_DOMAIN = 'gifchain.art'
 export const EXPLORER_SUBDOMAIN = 'explore'
 export const EXPLORER_DOMAIN = `${EXPLORER_SUBDOMAIN}.${ROOT_DOMAIN}`
 

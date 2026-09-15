@@ -92,10 +92,10 @@ export const CHAIN = {
   indexWindow: 2000,
   /** Finality depth, in seals after inclusion. */
   finalityDepth: 2,
-  rpcHttp: 'https://rpc.gif.com',
-  rpcWs: 'wss://rpc.gif.com/ws',
-  restBase: 'https://api.gif.com/v1',
-  graphBase: 'https://index.gif.com/graphql',
+  rpcHttp: 'https://rpc.gifchain.art',
+  rpcWs: 'wss://rpc.gifchain.art/ws',
+  restBase: 'https://api.gifchain.art/v1',
+  graphBase: 'https://index.gifchain.art/graphql',
   gifPriceUsd: 3.42,
 } as const
 

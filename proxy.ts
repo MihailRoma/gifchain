@@ -10,8 +10,8 @@ import {
 /**
  * Splits one deployment into two properties.
  *
- *   gif.com          protocol site   /, /objects, /collections, /mint, /docs
- *   explore.gif.com  block explorer  /, /blocks, /tx, /wallet, /stats
+ *   gifchain.art          protocol site   /, /objects, /collections, /mint, /docs
+ *   explore.gifchain.art  block explorer  /, /blocks, /tx, /wallet, /stats
  *
  * Chain routes keep their real paths on both hosts, so the only rewrite needed
  * is the explorer's root. Everything else is a redirect from the protocol
