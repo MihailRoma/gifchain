@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { Sprite } from '@/components/kit'
+import { Sprite } from '@/components/sprite'
 
 export interface MintTarget {
   slug: string
