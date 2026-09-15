@@ -20,7 +20,9 @@ import { dec, num } from '@/lib/chain/format'
 
 export default function HomePage() {
   const stats = networkStats()
-  const mints = recentMints(24)
+  // 48 divides evenly by both grid column counts (6 and 8), so the contact
+  // sheet always ends on a complete row with no ragged gap.
+  const mints = recentMints(48)
   const trending = trendingCollections().slice(0, 8)
   const series = dailySeries()
   const mosaic = objects.filter((o) => !o.burned).slice(0, 36)
@@ -186,16 +188,16 @@ export default function HomePage() {
             </Link>
           }
         >
-          <div className="flex flex-wrap gap-[3px] p-2">
+          <div className="grid grid-cols-6 gap-px border-t border-line bg-line sm:grid-cols-8">
             {mints.map(({ object, event }) => (
               <Link
                 key={event.hash}
                 href={`/object/${object.slug}/${object.tokenId}`}
-                className="block shrink-0 border border-line bg-surface p-[2px] no-underline hover:bg-[#f6ffd0]"
+                className="group block bg-surface p-[3px] no-underline hover:bg-[#f6ffd0]"
                 title={`${object.name} minted in block ${event.height}`}
               >
-                <ObjectSprite object={object} size={62} className="block border-0" />
-                <span className="mt-[2px] block text-center font-mono text-[9px] leading-[11px] text-muted-foreground">
+                <ObjectSprite object={object} fluid className="border-0" />
+                <span className="mt-[3px] block truncate text-center font-mono text-[9px] leading-[11px] text-muted-foreground group-hover:text-foreground">
                   #{String(object.tokenId).padStart(4, '0')}
                   <br />
                   blk {num(event.height)}

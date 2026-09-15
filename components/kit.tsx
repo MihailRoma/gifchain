@@ -217,10 +217,12 @@ export { Sprite }
 export function ObjectSprite({
   object,
   size = 32,
+  fluid = false,
   className = '',
 }: {
   object: GifObject
   size?: number
+  fluid?: boolean
   className?: string
 }) {
   const col = collections.find((c) => c.slug === object.slug)
@@ -230,6 +232,7 @@ export function ObjectSprite({
       cell={object.cell}
       filter={object.filter}
       size={size}
+      fluid={fluid}
       className={className}
       title={object.name}
     />

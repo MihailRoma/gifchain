@@ -5,6 +5,7 @@ export function Sprite({
   cell,
   filter,
   size = 32,
+  fluid = false,
   className = '',
   title,
 }: {
@@ -12,6 +13,8 @@ export function Sprite({
   cell: number
   filter?: string | null
   size?: number
+  /** Fill the parent's width and stay square, instead of using a fixed pixel size. */
+  fluid?: boolean
   className?: string
   title?: string
 }) {
@@ -22,10 +25,10 @@ export function Sprite({
       role="img"
       aria-label={title ?? 'object preview'}
       title={title}
-      className={`sprite ${className}`}
+      className={`sprite ${fluid ? 'block aspect-square w-full' : ''} ${className}`}
       style={{
-        width: size,
-        height: size,
+        width: fluid ? undefined : size,
+        height: fluid ? undefined : size,
         backgroundImage: `url(${sheet})`,
         backgroundPosition: `${(col / 3) * 100}% ${(row / 3) * 100}%`,
         filter: filter ?? undefined,
