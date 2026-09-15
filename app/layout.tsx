@@ -32,6 +32,22 @@ export async function generateMetadata(): Promise<Metadata> {
       description:
         'Search GIFCHAIN blocks, transactions, accounts, contracts and on-chain objects. Live head, object trie proofs and full transaction history.',
       generator: 'v0.app',
+      openGraph: {
+        type: 'website',
+        siteName: 'GIFSCAN',
+        title: 'GIFSCAN \u00b7 GIFCHAIN explorer',
+        description:
+          'Search GIFCHAIN blocks, transactions, accounts, contracts and on-chain objects.',
+        url: EXPLORER_URL,
+        images: [{ url: '/og.png', width: 1358, height: 677, alt: 'GIFCHAIN' }],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: 'GIFSCAN \u00b7 GIFCHAIN explorer',
+        description:
+          'Search GIFCHAIN blocks, transactions, accounts, contracts and on-chain objects.',
+        images: ['/og.png'],
+      },
     }
   }
 
@@ -44,6 +60,22 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       'GIFCHAIN is an object-native network. Explore blocks, transactions, collections, wallets and every digital object on chain.',
     generator: 'v0.app',
+    openGraph: {
+      type: 'website',
+      siteName: 'GIFCHAIN',
+      title: 'GIFCHAIN \u00b7 the blockchain for NFTs',
+      description:
+        'A layer-1 network where the object is the primary unit of state. NFTs, GIFs, JPEGs and digital objects live, move and evolve onchain.',
+      url: ROOT_URL,
+      images: [{ url: '/og.png', width: 1358, height: 677, alt: 'GIFCHAIN \u2014 the blockchain for NFTs' }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'GIFCHAIN \u00b7 the blockchain for NFTs',
+      description:
+        'A layer-1 network where the object is the primary unit of state. NFTs, GIFs, JPEGs and digital objects live, move and evolve onchain.',
+      images: ['/og.png'],
+    },
   }
 }
 
