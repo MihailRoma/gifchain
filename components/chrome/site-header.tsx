@@ -32,6 +32,12 @@ export async function SiteHeader() {
             <span aria-hidden className="inline-block h-[7px] w-[7px] bg-lime" />
             all systems operational
           </span>
+          <a
+            href="#"
+            className="bg-lime px-1 font-bold text-foreground no-underline hover:bg-lime"
+          >
+            $GIFCHAIN
+          </a>
           <Link href="/developers" className="text-white">
             rpc
           </Link>
