@@ -7,7 +7,8 @@ import {
   type CollectionStats,
   type GifObject,
 } from '@/lib/chain/data'
-import { dec, gif, num, shortAge, trunc } from '@/lib/chain/format'
+import { dec, gif, num, trunc } from '@/lib/chain/format'
+import { Age } from './live/age'
 import {
   AddressLink,
   Chip,
@@ -45,7 +46,9 @@ export function BlocksTable({ blocks, compact = false }: { blocks: Block[]; comp
                 {num(b.height)}
               </Link>
             </td>
-            <td className="text-muted-foreground">{shortAge(b.ts)}</td>
+            <td className="num text-muted-foreground">
+              <Age ts={b.ts} />
+            </td>
             <td className="num">{b.txCount}</td>
             <td className="num">{b.mints}</td>
             <td className="num">{b.transfers}</td>
@@ -150,7 +153,9 @@ export function EventsTable({
                   </Link>
                 </td>
               )}
-              <td className="text-muted-foreground">{shortAge(e.ts)}</td>
+              <td className="num text-muted-foreground">
+                <Age ts={e.ts} />
+              </td>
             </tr>
           )
         })}

@@ -2,23 +2,24 @@ import Link from 'next/link'
 import { SearchBox } from '@/components/chrome/search-box'
 import { CopyButton } from '@/components/copy-button'
 import { BarChart, Btn, ObjectSprite, Panel, PanelNote, Stat } from '@/components/kit'
-import { BlocksTable, CollectionsTable, EventsTable, ObjectGrid } from '@/components/tables'
+import { LiveBlocks } from '@/components/live/live-blocks'
+import { LiveHeight } from '@/components/live/live-tip'
+import { LiveTxs } from '@/components/live/live-txs'
+import { CollectionsTable, ObjectGrid } from '@/components/tables'
 import { CHAIN } from '@/lib/chain/constants'
 import {
   dailySeries,
-  latestBlocks,
-  latestEvents,
   networkStats,
   objects,
   recentMints,
+  spritePool,
   trendingCollections,
+  liveHead,
 } from '@/lib/chain/data'
 import { dec, num } from '@/lib/chain/format'
 
 export default function HomePage() {
   const stats = networkStats()
-  const blocks = latestBlocks(12)
-  const activity = latestEvents(14)
   const mints = recentMints(24)
   const trending = trendingCollections().slice(0, 8)
   const series = dailySeries()
@@ -32,7 +33,7 @@ export default function HomePage() {
         title="GIFCHAIN / mainnet"
         right={
           <span className="font-mono text-[10px] normal-case">
-            genesis 2024-11-02 {'\u00b7'} {num(CHAIN.headHeight)} blocks produced
+            genesis 2024-11-02 {'\u00b7'} {num(liveHead())} blocks produced
           </span>
         }
       >
@@ -107,7 +108,7 @@ export default function HomePage() {
             address {'\u00b7'} contract address {'\u00b7'} collection name {'\u00b7'} object name
             {'  '}
             <Link href="/search?q=gifcats">try GIFCATS</Link> {'\u00b7'}{' '}
-            <Link href={`/search?q=${CHAIN.headHeight}`}>try {num(CHAIN.headHeight)}</Link>
+            <Link href={`/search?q=${liveHead()}`}>try {num(liveHead())}</Link>
           </p>
         </div>
       </Panel>
@@ -115,7 +116,7 @@ export default function HomePage() {
       {/* stats ---------------------------------------------------------- */}
       <div className="panel">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
-          <Stat label="latest block" value={num(stats.height)} sub="4.02s average" href="/blocks" />
+          <Stat label="latest block" value={<LiveHeight />} sub="5s target slot" href="/blocks" />
           <Stat label="objects on chain" value={num(stats.objects)} sub={`${stats.burned} burned`} href="/objects" />
           <Stat label="collections" value={num(stats.collections)} sub="8 verified" href="/collections" />
           <Stat label="transfers (24h)" value={num(stats.transfers24h)} sub="object layer only" href="/activity" />
@@ -138,7 +139,7 @@ export default function HomePage() {
             </Link>
           }
         >
-          <BlocksTable blocks={blocks} compact />
+          <LiveBlocks pool={spritePool()} limit={8} compact />
           <PanelNote>
             Every block commits an object root. Blocks with no object operations still produce a
             root, they just repeat the previous one.
@@ -153,7 +154,7 @@ export default function HomePage() {
             </Link>
           }
         >
-          <EventsTable events={activity} showHash={false} showBlock={false} />
+          <LiveTxs pool={spritePool()} limit={8} showBlock={false} />
         </Panel>
       </div>
 
@@ -284,7 +285,7 @@ const object = await chain.object("gifcats", 12)
 
 object.owner      // 0x8f2c...
 object.frames     // 4
-object.mintBlock  // ${num(CHAIN.headHeight - 900_000)}
+object.mintBlock  // ${num(liveHead() - 900_000)}
 object.media()    // Uint8Array, straight from the object trie`}</code>
           </pre>
           <PanelNote>

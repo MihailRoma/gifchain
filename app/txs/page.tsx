@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { Pager, Panel, PanelNote, Stat, TabNav } from '@/components/kit'
+import { LiveTxs } from '@/components/live/live-txs'
 import { EventsTable } from '@/components/tables'
-import { countEvents, latestEvents, type EventType } from '@/lib/chain/data'
+import { countEvents, latestEvents, spritePool, type EventType } from '@/lib/chain/data'
 import { num } from '@/lib/chain/format'
 import { buildHref, one, pageOf, type SP } from '@/lib/paging'
 
@@ -43,7 +44,13 @@ export default async function TxsPage({ searchParams }: { searchParams: Promise<
             count: t === 'ALL' ? countEvents() : countEvents([t as EventType]),
           }))}
         />
-        <EventsTable events={events} />
+        {/* Unfiltered page one is the tip of the chain and streams. Any filter
+            or deeper page is a history query and stays server-rendered. */}
+        {page === 1 && active === 'ALL' ? (
+          <LiveTxs pool={spritePool()} limit={PER_PAGE} />
+        ) : (
+          <EventsTable events={events} />
+        )}
         <Pager
           page={page}
           pages={pages}

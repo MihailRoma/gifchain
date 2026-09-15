@@ -3,24 +3,23 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
+/**
+ * Protocol-site navigation. Chain browsing (blocks, transactions, accounts,
+ * analytics) belongs to the explorer property and is reached through the single
+ * outbound link at the end rather than duplicated here.
+ */
 const LINKS: Array<{ href: string; label: string; match?: string[] }> = [
   { href: '/', label: 'home' },
-  { href: '/explorer', label: 'explorer' },
-  { href: '/blocks', label: 'blocks', match: ['/block'] },
-  { href: '/txs', label: 'transactions', match: ['/tx'] },
   { href: '/objects', label: 'objects', match: ['/object'] },
   { href: '/collections', label: 'collections' },
-  { href: '/activity', label: 'activity' },
   { href: '/mint', label: 'mint' },
-  { href: '/wallets', label: 'wallets', match: ['/wallet'] },
-  { href: '/contracts', label: 'contracts' },
-  { href: '/stats', label: 'stats' },
   { href: '/bridge', label: 'bridge' },
+  { href: '/wallets', label: 'wallets' },
   { href: '/developers', label: 'developers' },
   { href: '/docs', label: 'docs' },
 ]
 
-export function MainNav() {
+export function MainNav({ explorerHref }: { explorerHref: string }) {
   const pathname = usePathname() || '/'
   return (
     <nav
@@ -40,13 +39,21 @@ export function MainNav() {
             href={l.href}
             aria-current={active ? 'page' : undefined}
             className={`border-r border-hair px-2 py-[3px] no-underline ${
-              active ? 'bg-foreground text-lime hover:bg-foreground hover:text-lime' : 'text-foreground'
+              active
+                ? 'bg-foreground text-lime hover:bg-foreground hover:text-lime'
+                : 'text-foreground'
             }`}
           >
             {l.label}
           </Link>
         )
       })}
+      <a
+        href={explorerHref}
+        className="ml-auto border-l border-hair bg-lime px-2 py-[3px] font-bold text-foreground no-underline hover:bg-lime"
+      >
+        explorer {'\u2197'}
+      </a>
     </nav>
   )
 }

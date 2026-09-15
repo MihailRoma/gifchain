@@ -5,7 +5,7 @@ import { CopyButton } from '@/components/copy-button'
 import { Btn, Chip, DetailList, Panel, PanelNote } from '@/components/kit'
 import { EventsTable } from '@/components/tables'
 import { CHAIN } from '@/lib/chain/constants'
-import { getBlock } from '@/lib/chain/data'
+import { getBlock, liveHead } from '@/lib/chain/data'
 import { age, bytes, dec, num, utc } from '@/lib/chain/format'
 
 type Props = { params: Promise<{ height: string }> }
@@ -33,7 +33,7 @@ export default async function BlockPage({ params }: Props) {
             <Btn href={`/block/${block.height - 1}`} disabled={block.height <= 1}>
               {'\u2190'} prev
             </Btn>
-            <Btn href={`/block/${block.height + 1}`} disabled={block.height >= CHAIN.headHeight}>
+            <Btn href={`/block/${block.height + 1}`} disabled={block.height >= liveHead()}>
               next {'\u2192'}
             </Btn>
             <Btn href="/blocks">all blocks</Btn>
@@ -48,7 +48,7 @@ export default async function BlockPage({ params }: Props) {
                 <span className="num font-mono">{num(block.height)}</span>
                 <Chip kind="OK">finalized</Chip>
                 <span className="text-muted-foreground">
-                  {num(CHAIN.headHeight - block.height)} confirmations
+                  {num(liveHead() - block.height)} confirmations
                 </span>
               </span>,
             ],

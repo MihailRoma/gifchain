@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
 import { Pager, Panel, PanelNote, Stat } from '@/components/kit'
+import { LiveBlocks } from '@/components/live/live-blocks'
+import { LiveHeight } from '@/components/live/live-tip'
 import { BlocksTable } from '@/components/tables'
 import { CHAIN } from '@/lib/chain/constants'
-import { latestBlocks, networkStats } from '@/lib/chain/data'
+import { latestBlocks, liveHead, networkStats, spritePool } from '@/lib/chain/data'
 import { dec, num } from '@/lib/chain/format'
 import { buildHref, pageOf, type SP } from '@/lib/paging'
 
@@ -28,8 +30,12 @@ export default async function BlocksPage({ searchParams }: { searchParams: Promi
     <div className="flex flex-col gap-2">
       <div className="panel">
         <div className="grid grid-cols-2 md:grid-cols-5">
-          <Stat label="head" value={num(stats.height)} sub="latest sealed block" />
-          <Stat label="block time" value={`${stats.avgBlockTime}s`} sub="p50, last 1000 blocks" />
+          <Stat label="head" value={<LiveHeight />} sub="latest sealed block" />
+          <Stat
+            label="block time"
+            value={`${stats.avgBlockTime}s`}
+            sub={'target, slots vary 3\u20137s'}
+          />
           <Stat label="avg txs / block" value={avgTx.toFixed(2)} sub="last 120 blocks" />
           <Stat label="avg gas used" value={num(Math.round(avgGas))} sub={`limit ${num(30_000_000)}`} />
           <Stat label="sequencers" value="8 / 8" sub="round robin, 1 epoch" />
@@ -50,7 +56,13 @@ export default async function BlocksPage({ searchParams }: { searchParams: Promi
           </form>
         }
       >
-        <BlocksTable blocks={blocks} />
+        {/* The first page sits at the tip, so it streams; deeper pages are a
+            fixed slice of history and render once on the server. */}
+        {page === 1 ? (
+          <LiveBlocks pool={spritePool()} limit={PER_PAGE} />
+        ) : (
+          <BlocksTable blocks={blocks} />
+        )}
         <Pager
           page={page}
           pages={pages}
@@ -61,7 +73,7 @@ export default async function BlocksPage({ searchParams }: { searchParams: Promi
         <PanelNote>
           The object indexer keeps the last {num(CHAIN.indexWindow)} blocks hot. Older blocks are
           still reachable by height, for example{' '}
-          <a href={`/block/${CHAIN.headHeight - 1_000_000}`}>#{num(CHAIN.headHeight - 1_000_000)}</a>
+          <a href={`/block/${liveHead() - 1_000_000}`}>#{num(liveHead() - 1_000_000)}</a>
           , they are just served from cold storage. Fees are shown in GIF and include the object
           storage surcharge ({dec(0.0004, 4)} GIF per KB written).
         </PanelNote>

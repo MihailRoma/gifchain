@@ -1,6 +1,6 @@
 import Link from 'next/link'
+import { LiveHeight } from '@/components/live/live-tip'
 import { CHAIN } from '@/lib/chain/constants'
-import { num } from '@/lib/chain/format'
 
 const COLUMNS: Array<{ title: string; links: Array<[string, string]> }> = [
   {
@@ -66,8 +66,8 @@ export function SiteFooter() {
       </div>
       <div className="mt-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border border-line bg-surface px-2 py-1 font-mono text-[10px] text-muted-foreground">
         <span>
-          GIFCHAIN {CHAIN.networkId} {'\u00b7'} snapshot height {num(CHAIN.headHeight)} {'\u00b7'} indexer
-          node 04 {'\u00b7'} objects served from the object layer
+          GIFCHAIN {CHAIN.networkId} {'\u00b7'} head <LiveHeight /> {'\u00b7'} indexer node 04{' '}
+          {'\u00b7'} objects served from the object layer
         </span>
         <span>
           simulated network data {'\u00b7'} nothing here settles anywhere {'\u00b7'} built for the fun

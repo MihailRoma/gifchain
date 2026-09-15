@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { CopyButton } from '@/components/copy-button'
 import { AddressLink, Btn, Chip, DetailList, ObjectSprite, Panel, PanelNote } from '@/components/kit'
 import { CHAIN } from '@/lib/chain/constants'
-import { getCollection, getEvent, getObjectByKey, walletName } from '@/lib/chain/data'
+import { getCollection, getEvent, getObjectByKey, liveHead, walletName } from '@/lib/chain/data'
 import { age, dec, gif, num, utc } from '@/lib/chain/format'
 import { hexFrom } from '@/lib/chain/rng'
 
@@ -99,7 +99,7 @@ export default async function TxPage({ params }: Props) {
                   {tx.status === 'failed' ? 'reverted' : 'success'}
                 </Chip>
                 <span className="text-muted-foreground">
-                  {num(CHAIN.headHeight - tx.height)} block confirmations
+                  {num(liveHead() - tx.height)} block confirmations
                 </span>
               </span>,
             ],

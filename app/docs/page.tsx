@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Panel, PanelNote, Stat, Table } from '@/components/kit'
 import { CHAIN } from '@/lib/chain/constants'
+import { liveHead } from '@/lib/chain/data'
 import { num } from '@/lib/chain/format'
 
 export const metadata: Metadata = {
@@ -36,8 +37,8 @@ export default function DocsPage() {
             </p>
           </div>
           <div className="grid grid-cols-2">
-            <Stat label="height" value={num(CHAIN.headHeight)} sub="snapshot anchor" />
-            <Stat label="block time" value="4.0s" sub="2 block finality" />
+            <Stat label="height" value={num(liveHead())} sub="current head" />
+            <Stat label="block time" value="3-7s" sub="2 block finality" />
             <Stat label="object limit" value="16 KB" sub="per object, hard cap" />
             <Stat label="standards" value="721 / 1155" sub="plus 165 and 2981" />
           </div>

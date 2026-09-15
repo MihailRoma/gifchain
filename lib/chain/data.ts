@@ -1,5 +1,26 @@
-import { BURN_ADDRESS, CHAIN, heightToTs } from './constants'
+import { BURN_ADDRESS, CHAIN, blockTimeAt, heightAtTime, heightToTs } from './constants'
+import { liveBlockAt, type LiveBlock, type SpriteRef } from './live'
 import { hexFrom, int, pick, rngFor } from './rng'
+
+/**
+ * Height the object index was built up to. The chain keeps sealing blocks after
+ * this point; those are produced on demand by `lib/chain/live`. Pinning the
+ * index to process start (rather than a hard-coded constant) keeps indexed
+ * history sitting just behind the tip instead of receding further every day.
+ */
+export const INDEX_HEAD = heightAtTime(Date.now())
+
+/** Current head. Recomputed per call — the chain does not wait for us. */
+export function liveHead(): number {
+  return heightAtTime(Date.now())
+}
+
+/** Mean seal gap over the last `window` blocks, in seconds. */
+export function measuredBlockTime(window = 1000): number {
+  const head = liveHead()
+  const span = blockTimeAt(head) - blockTimeAt(head - window)
+  return Math.round((span / window / 1000) * 100) / 100
+}
 
 /* ------------------------------------------------------------------ types */
 
@@ -102,16 +123,10 @@ export interface Block {
 
 /* -------------------------------------------------------------- sequencers */
 
-export const SEQUENCERS = [
-  'seq-01.ams',
-  'seq-02.ams',
-  'seq-03.nrt',
-  'seq-04.iad',
-  'seq-05.sfo',
-  'seq-06.gru',
-  'seq-07.sin',
-  'seq-08.fra',
-] as const
+// Defined in ./constants so client bundles can name a proposer without pulling
+// this module in.
+export { SEQUENCERS } from './constants'
+import { SEQUENCERS } from './constants'
 
 /* ----------------------------------------------------------------- wallets */
 
@@ -173,7 +188,7 @@ export const MINT_MODULE = SYSTEM_WALLETS[1].address
 function buildWallets(): Wallet[] {
   const out: Wallet[] = SYSTEM_WALLETS.map((w, i) => ({
     ...w,
-    firstSeen: CHAIN.headHeight - 3_900_000 - i,
+    firstSeen: INDEX_HEAD - 3_900_000 - i,
   }))
   for (let i = 0; i < 46; i++) {
     const r = rngFor(`wallet:${i}`)
@@ -182,7 +197,7 @@ function buildWallets(): Wallet[] {
       handle: i < HANDLES.length ? HANDLES[i] : null,
       label: null,
       kind: 'account',
-      firstSeen: CHAIN.headHeight - int(r, 12_000, 2_400_000),
+      firstSeen: INDEX_HEAD - int(r, 12_000, 2_400_000),
     })
   }
   return out
@@ -201,7 +216,7 @@ export function getWallet(address: string): Wallet | null {
       handle: null,
       label: null,
       kind: 'account',
-      firstSeen: CHAIN.headHeight - 1,
+      firstSeen: INDEX_HEAD - 1,
     }
   }
   return null
@@ -384,7 +399,7 @@ export const collections: Collection[] = COLLECTION_SEEDS.map((seed) => ({
   creator: accountWallets[seedIndex(seed.slug, accountWallets.length)].address,
   description: seed.description,
   supply: seed.supply,
-  deployHeight: CHAIN.headHeight - seed.deployAgo,
+  deployHeight: INDEX_HEAD - seed.deployAgo,
   royaltyBps: seed.royaltyBps,
   category: seed.category,
   verified: seed.category !== 'DERIVATIVE' || seed.slug === 'gifcats-noir',
@@ -435,9 +450,9 @@ function buildObjects(): GifObject[] {
       const filterParts = [col.filter, VARIANT_FILTERS[variant]].filter(Boolean) as string[]
       const inWindow = r() < 0.16
       const mintHeight = inWindow
-        ? CHAIN.headHeight - int(r, 2, CHAIN.indexWindow - 4)
+        ? INDEX_HEAD - int(r, 2, CHAIN.indexWindow - 4)
         : Math.min(
-            CHAIN.headHeight - CHAIN.indexWindow - 10,
+            INDEX_HEAD - CHAIN.indexWindow - 10,
             col.deployHeight + int(r, 3, 90_000),
           )
       const obj: GifObject = {
@@ -501,9 +516,9 @@ for (const obj of objects) {
   mintsByHeight.set(obj.mintHeight, list)
 }
 
-const windowStart = CHAIN.headHeight - CHAIN.indexWindow + 1
+const windowStart = INDEX_HEAD - CHAIN.indexWindow + 1
 const activeHeights = new Set<number>([...mintsByHeight.keys()])
-for (let h = windowStart; h <= CHAIN.headHeight; h++) activeHeights.add(h)
+for (let h = windowStart; h <= INDEX_HEAD; h++) activeHeights.add(h)
 for (const col of collections) activeHeights.add(col.deployHeight)
 
 const deploysByHeight = new Map<number, Collection[]>()
@@ -668,8 +683,44 @@ function push<K>(map: Map<K, ChainEvent[]>, key: K, e: ChainEvent) {
 
 const eventsDesc = [...events].reverse()
 
+/** How far above the index the tip feed is generated. Bounds per-request work. */
+const TIP_FEED_BLOCKS = 800
+
+/** Tip events, newest first, generated on demand from heights above the index. */
+export function tipEvents(limit: number, offset = 0, types?: EventType[]): ChainEvent[] {
+  const head = liveHead()
+  const floor = Math.max(INDEX_HEAD, head - TIP_FEED_BLOCKS)
+  const out: ChainEvent[] = []
+  let skipped = 0
+  for (let h = head; h > floor && out.length < limit; h--) {
+    const block = liveToBlock(liveBlockAt(h, spritePool()))
+    for (let i = block.events.length - 1; i >= 0 && out.length < limit; i--) {
+      const e = block.events[i]
+      if (types && !types.includes(e.type)) continue
+      if (skipped < offset) {
+        skipped++
+        continue
+      }
+      out.push(e)
+    }
+  }
+  return out
+}
+
 export function getEvent(hash: string): ChainEvent | null {
-  return eventByHash.get(hash.toLowerCase()) ?? null
+  const indexed = eventByHash.get(hash.toLowerCase()) ?? null
+  if (indexed) return indexed
+  // Tip transactions are generated, not stored, so recover by scanning back
+  // from the head over the same window the feed exposes.
+  const target = hash.toLowerCase()
+  const head = liveHead()
+  const floor = Math.max(INDEX_HEAD, head - TIP_FEED_BLOCKS)
+  for (let h = head; h > floor; h--) {
+    for (const e of liveToBlock(liveBlockAt(h, spritePool())).events) {
+      if (e.hash === target) return e
+    }
+  }
+  return null
 }
 export function objectHistory(key: string): ChainEvent[] {
   return [...(eventsByObject.get(key) ?? [])].reverse()
@@ -691,8 +742,75 @@ export function countEvents(types?: EventType[]): number {
 
 /* ------------------------------------------------------------------ blocks */
 
+/**
+ * Artwork pool handed to the live generator so tip blocks reference real
+ * objects. Built once, lazily, from the indexed set.
+ */
+let poolCache: SpriteRef[] | null = null
+export function spritePool(size = 120): SpriteRef[] {
+  if (poolCache) return poolCache
+  const sheetBySlug = new Map(collections.map((c) => [c.slug, c.sheet]))
+  poolCache = objects
+    .filter((o) => !o.burned)
+    .slice(0, size)
+    .map((o) => ({
+      key: o.key,
+      slug: o.slug,
+      tokenId: o.tokenId,
+      name: o.name,
+      sheet: sheetBySlug.get(o.slug) ?? '/objects/gifcats.png',
+      cell: o.cell,
+      filter: o.filter,
+    }))
+  return poolCache
+}
+
+/** Present a generated tip block in the same shape as an indexed one. */
+function liveToBlock(lb: LiveBlock): Block {
+  const events: ChainEvent[] = lb.txs.map((t) => ({
+    hash: t.hash,
+    type: t.kind,
+    height: t.height,
+    ts: t.ts,
+    index: t.index,
+    objectKey: t.ref?.key ?? null,
+    slug: t.ref?.slug ?? null,
+    from: t.from,
+    to: t.to,
+    price: t.price,
+    fee: t.fee,
+    gasUsed: t.gasUsed,
+    nonce: t.index,
+    status: t.status,
+  }))
+  return {
+    height: lb.height,
+    hash: lb.hash,
+    parentHash: lb.parentHash,
+    stateRoot: lb.stateRoot,
+    objectRoot: lb.objectRoot,
+    ts: lb.ts,
+    sequencer: lb.sequencer,
+    txCount: lb.txCount,
+    mints: lb.mints,
+    transfers: lb.transfers,
+    burns: lb.burns,
+    sales: lb.sales,
+    collections: [...new Set(events.map((e) => e.slug).filter(Boolean) as string[])],
+    gasUsed: lb.gasUsed,
+    gasLimit: lb.gasLimit,
+    baseFee: lb.baseFee,
+    fees: lb.fees,
+    size: lb.size,
+    events,
+  }
+}
+
 export function getBlock(height: number): Block | null {
-  if (!Number.isFinite(height) || height < 1 || height > CHAIN.headHeight) return null
+  if (!Number.isFinite(height) || height < 1 || height > liveHead()) return null
+  // Above the index the chain is generated on demand, so the tip is always
+  // browsable no matter how long this process has been running.
+  if (height > INDEX_HEAD) return liveToBlock(liveBlockAt(height, spritePool()))
   const r = rngFor(`block:${height}`)
   const evs = eventsByHeight.get(height) ?? []
   const gasUsed = evs.reduce((a, e) => a + e.gasUsed, 0) + int(r, 21_000, 64_000)
@@ -720,10 +838,12 @@ export function getBlock(height: number): Block | null {
   }
 }
 
+/** Newest blocks, counted down from the live head rather than the index. */
 export function latestBlocks(limit: number, offset = 0): Block[] {
+  const head = liveHead()
   const out: Block[] = []
   for (let i = 0; i < limit; i++) {
-    const h = CHAIN.headHeight - offset - i
+    const h = head - offset - i
     if (h < 1) break
     const b = getBlock(h)
     if (b) out.push(b)
@@ -733,7 +853,8 @@ export function latestBlocks(limit: number, offset = 0): Block[] {
 
 export function getBlockByHash(hash: string): Block | null {
   const target = hash.toLowerCase()
-  for (let h = CHAIN.headHeight; h > CHAIN.headHeight - CHAIN.indexWindow; h--) {
+  const head = liveHead()
+  for (let h = head; h > head - CHAIN.indexWindow; h--) {
     if ('0x' + hexFrom(`blockhash:${h}`, 64) === target) return getBlock(h)
   }
   return null
@@ -814,10 +935,11 @@ export interface NetworkStats {
 let networkCache: NetworkStats | null = null
 
 export function networkStats(): NetworkStats {
-  if (networkCache) return networkCache
+  // Height is deliberately outside the cache: the chain keeps moving.
+  if (networkCache) return { ...networkCache, height: liveHead() }
   const sales = events.filter((e) => e.type === 'SALE' && e.status === 'success')
   networkCache = {
-    height: CHAIN.headHeight,
+    height: liveHead(),
     objects: objects.filter((o) => !o.burned).length,
     collections: collections.length,
     transfers24h: events.filter((e) => e.type === 'TRANSFER').length * 12,
@@ -825,7 +947,7 @@ export function networkStats(): NetworkStats {
     sales24h: sales.length,
     volume24h: Math.round(sales.reduce((a, e) => a + (e.price ?? 0), 0) * 100) / 100,
     activeWallets: new Set(events.map((e) => e.from)).size * 37,
-    avgBlockTime: 4.02,
+    avgBlockTime: measuredBlockTime(1000),
     txTotal: 88_412_907,
     gasPrice: 0.42,
     burned: objects.filter((o) => o.burned).length,
@@ -852,7 +974,7 @@ export function dailySeries(): DayPoint[] {
   const out: DayPoint[] = []
   for (let i = 29; i >= 0; i--) {
     const r = rngFor(`day:${i}`)
-    const ts = CHAIN.anchor - i * 86_400_000
+    const ts = blockTimeAt(INDEX_HEAD) - i * 86_400_000
     const d = new Date(ts)
     const pad = (n: number) => String(n).padStart(2, '0')
     out.push({
@@ -886,7 +1008,7 @@ export function search(raw: string): SearchResult[] {
 
   if (/^\d+$/.test(q)) {
     const h = parseInt(q, 10)
-    if (h <= CHAIN.headHeight) {
+    if (h >= 1 && h <= liveHead()) {
       out.push({ kind: 'block', height: h, label: `Block #${h}`, sub: 'block height' })
     }
     for (const o of objects) {

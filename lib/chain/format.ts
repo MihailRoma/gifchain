@@ -1,5 +1,3 @@
-import { CHAIN } from './constants'
-
 export function trunc(value: string, head = 10, tail = 8): string {
   if (value.length <= head + tail + 1) return value
   return `${value.slice(0, head)}\u2026${value.slice(-tail)}`
@@ -35,11 +33,13 @@ export function bytes(value: number): string {
 }
 
 /**
- * Ages are measured against the fixed chain anchor, not wall-clock time, so
- * server and client always agree on the string.
+ * Ages are measured against real wall-clock time. `now` is passed in rather
+ * than read from `Date.now()` internally so a server render and the hydrating
+ * client agree on the first paint; after mount the `<Age>` component feeds in a
+ * ticking clock. The default keeps one-off server callers correct.
  */
-export function age(ts: number): string {
-  const diff = Math.max(0, Math.round((CHAIN.anchor - ts) / 1000))
+export function age(ts: number, now: number = Date.now()): string {
+  const diff = Math.max(0, Math.round((now - ts) / 1000))
   if (diff < 60) return `${diff}s ago`
   const m = Math.floor(diff / 60)
   if (m < 60) return `${m}m ${diff % 60}s ago`
@@ -50,16 +50,25 @@ export function age(ts: number): string {
   return `${Math.floor(d / 30)}mo ago`
 }
 
-export function shortAge(ts: number): string {
-  const diff = Math.max(0, Math.round((CHAIN.anchor - ts) / 1000))
+/**
+ * Compact age for table cells. Keeps second precision inside the first hour so
+ * a live list visibly counts up instead of collapsing to a flat "1m".
+ */
+export function shortAge(ts: number, now: number = Date.now()): string {
+  const diff = Math.max(0, Math.round((now - ts) / 1000))
   if (diff < 60) return `${diff}s`
   const m = Math.floor(diff / 60)
-  if (m < 60) return `${m}m`
+  if (m < 60) return `${m}m ${diff % 60}s`
   const h = Math.floor(m / 60)
-  if (h < 24) return `${h}h`
+  if (h < 24) return `${h}h ${m % 60}m`
   const d = Math.floor(h / 24)
-  if (d < 365) return `${d}d`
+  if (d < 365) return `${d}d ${h % 24}h`
   return `${Math.floor(d / 365)}y`
+}
+
+/** One-decimal countdown used for "next block in" readouts. */
+export function secondsUntil(ts: number, now: number): string {
+  return `${Math.max(0, (ts - now) / 1000).toFixed(1)}s`
 }
 
 export function utc(ts: number): string {

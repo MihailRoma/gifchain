@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { BarChart, Bars, Panel, PanelNote, Stat, Table } from '@/components/kit'
 import { CHAIN } from '@/lib/chain/constants'
-import { collectionStats, collections, dailySeries, networkStats, topWallets } from '@/lib/chain/data'
+import { collectionStats, collections, dailySeries, liveHead, networkStats, topWallets } from '@/lib/chain/data'
 import { dec, num } from '@/lib/chain/format'
 
 export const metadata: Metadata = {
@@ -125,7 +125,7 @@ export default function StatsPage() {
         </Table>
         <PanelNote>
           Days are bucketed by UTC midnight against the snapshot anchor at height{' '}
-          {num(CHAIN.headHeight)}. Volume counts only sales settled by the native market module;
+          {num(liveHead())}. Volume counts only sales settled by the native market module;
           objects moved by private agreement show up as transfers with no price.
         </PanelNote>
       </Panel>

@@ -1,13 +1,17 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { headers } from 'next/headers'
+import { LiveHeight } from '@/components/live/live-tip'
 import { CHAIN } from '@/lib/chain/constants'
-import { networkStats } from '@/lib/chain/data'
-import { num } from '@/lib/chain/format'
+import { measuredBlockTime, networkStats } from '@/lib/chain/data'
+import { explorerLinkFor } from '@/lib/site'
 import { MainNav } from './main-nav'
 import { SearchBox } from './search-box'
 
-export function SiteHeader() {
+export async function SiteHeader() {
   const stats = networkStats()
+  const host = ((await headers()).get('host') ?? '').split(':')[0].toLowerCase()
+  const explorerHref = explorerLinkFor(host)
   return (
     <header className="mb-2">
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 border border-line bg-foreground px-2 py-0.5 font-mono text-[10px] text-white">
@@ -15,10 +19,13 @@ export function SiteHeader() {
           <span className="text-lime">{CHAIN.networkId}</span>
           <span>chain id {CHAIN.chainId}</span>
           <span>
-            head <span className="text-lime">#{num(stats.height)}</span>
+            head{' '}
+            <span className="text-lime">
+              #<LiveHeight />
+            </span>
           </span>
           <span>gas {stats.gasPrice} ngif</span>
-          <span>block {stats.avgBlockTime}s</span>
+          <span>block {measuredBlockTime(1000).toFixed(2)}s</span>
         </span>
         <span className="flex flex-wrap items-center gap-x-3">
           <span className="flex items-center gap-1">
@@ -28,9 +35,9 @@ export function SiteHeader() {
           <Link href="/developers" className="text-white">
             rpc
           </Link>
-          <Link href="/stats" className="text-white">
-            status
-          </Link>
+          <a href={explorerHref} className="text-white">
+            explorer
+          </a>
           <Link href="/docs" className="text-white">
             docs
           </Link>
@@ -63,7 +70,7 @@ export function SiteHeader() {
         <SearchBox />
       </div>
 
-      <MainNav />
+      <MainNav explorerHref={explorerHref} />
     </header>
   )
 }

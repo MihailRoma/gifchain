@@ -243,3 +243,50 @@
     flex: none;
   }
 }
+
+/* ------------------------------------------------------------- live motion */
+
+/* A block landing in a table. Rows are keyed by height, so this plays once,
+   on the new row only, and never on the rows that merely shifted down. */
+@keyframes row-in {
+  from {
+    background: var(--lime);
+  }
+  to {
+    background: transparent;
+  }
+}
+
+/* Seal progress for the block being built. Duration is set inline from the
+   real interval for that height, so the bar fills in step with the chain. */
+@keyframes seal {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.row-in {
+  animation: row-in 900ms ease-out 1;
+}
+
+.seal-bar {
+  width: 0%;
+  animation-name: seal;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  animation-iteration-count: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row-in {
+    animation: none;
+  }
+
+  .seal-bar {
+    animation: none;
+    width: 100%;
+  }
+}

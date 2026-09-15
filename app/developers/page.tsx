@@ -3,7 +3,9 @@ import Link from 'next/link'
 import { CopyButton } from '@/components/copy-button'
 import { Panel, PanelNote, Stat, Table } from '@/components/kit'
 import { CHAIN } from '@/lib/chain/constants'
+import { liveHead } from '@/lib/chain/data'
 import { num } from '@/lib/chain/format'
+import { EXPLORER_URL } from '@/lib/site'
 
 export const metadata: Metadata = {
   title: 'Developers',
@@ -31,14 +33,14 @@ const SECTIONS = [
 ] as const
 
 export default function DevelopersPage() {
-  const rpc = 'https://rpc.gifchain.net'
+  const rpc = CHAIN.rpcHttp
   return (
     <div className="flex flex-col gap-2">
       <Panel tone="lime" title="build on gifchain">
         <div className="grid grid-cols-2 md:grid-cols-4">
           <Stat label="rpc" value="open" sub="no key for read methods" />
           <Stat label="rate limit" value="60 rps" sub="per IP, burst 200" />
-          <Stat label="archive depth" value={num(CHAIN.headHeight)} sub="full history from genesis" />
+          <Stat label="archive depth" value={num(liveHead())} sub="full history from genesis" />
           <Stat label="websocket" value="wss" sub="new heads and object events" />
         </div>
       </Panel>
@@ -70,15 +72,15 @@ export default function DevelopersPage() {
               </tr>
               <tr>
                 <th scope="row" className="bg-surface-2">rpc ws</th>
-                <td className="font-mono">wss://rpc.gifchain.net/ws</td>
+                <td className="font-mono">{CHAIN.rpcWs}</td>
               </tr>
               <tr>
                 <th scope="row" className="bg-surface-2">explorer</th>
-                <td className="font-mono">https://gifchain.net</td>
+                <td className="font-mono">{EXPLORER_URL}</td>
               </tr>
               <tr>
                 <th scope="row" className="bg-surface-2">block time</th>
-                <td className="font-mono">4.0s target, 2 block finality</td>
+                <td className="font-mono">3-7s, {CHAIN.blockTimeSec.toFixed(1)}s mean</td>
               </tr>
             </tbody>
           </table>
