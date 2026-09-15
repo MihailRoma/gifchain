@@ -35,7 +35,7 @@ export default async function ObjectPage({ params }: Props) {
 
   const stats = collectionStats(slug)
   const history = objectHistory(object.key)
-  const related = relatedObjects(object, 16)
+  const related = relatedObjects(object, 24)
   const dump = Array.from({ length: 6 }, (_, i) => hexFrom(`dump:${object.key}:${i}`, 48))
 
   return (
@@ -210,7 +210,7 @@ export default async function ObjectPage({ params }: Props) {
       </div>
 
       <Panel title={`more from ${collection.name}`} right={<Btn href={`/objects?c=${slug}`}>view all {stats.supply}</Btn>}>
-        <ObjectGrid objects={related} size={64} />
+        <ObjectGrid objects={related} fill />
       </Panel>
     </div>
   )

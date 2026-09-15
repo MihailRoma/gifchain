@@ -35,7 +35,12 @@ export async function SiteHeader() {
           <Link href="/developers" className="text-white">
             rpc
           </Link>
-          <a href={explorerHref} className="text-white">
+          <a
+            href={explorerHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white"
+          >
             explorer
           </a>
           <Link href="/docs" className="text-white">

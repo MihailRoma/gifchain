@@ -14,7 +14,6 @@ const LINKS: Array<{ href: string; label: string; match?: string[] }> = [
   { href: '/collections', label: 'collections' },
   { href: '/mint', label: 'mint' },
   { href: '/bridge', label: 'bridge' },
-  { href: '/wallets', label: 'wallets' },
   { href: '/developers', label: 'developers' },
   { href: '/docs', label: 'docs' },
 ]
@@ -50,6 +49,8 @@ export function MainNav({ explorerHref }: { explorerHref: string }) {
       })}
       <a
         href={explorerHref}
+        target="_blank"
+        rel="noopener noreferrer"
         className="ml-auto border-l border-hair bg-lime px-2 py-[3px] font-bold text-foreground no-underline hover:bg-lime"
       >
         explorer {'\u2197'}

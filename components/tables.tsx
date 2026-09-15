@@ -233,11 +233,39 @@ export function ObjectGrid({
   objects,
   size = 56,
   showLabels = true,
+  fill = false,
 }: {
   objects: GifObject[]
   size?: number
   showLabels?: boolean
+  /**
+   * Fill the panel edge to edge: a gapless fixed-column grid with sprites that
+   * scale to the column width, so the box always squares off with no ragged
+   * last row. Feed it a count divisible by the column counts below.
+   */
+  fill?: boolean
 }) {
+  if (objects.length === 0) {
+    return <p className="p-2 font-mono text-[11px] text-muted-foreground">no objects</p>
+  }
+
+  if (fill) {
+    return (
+      <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-12">
+        {objects.map((o) => (
+          <Link
+            key={o.key}
+            href={`/object/${o.slug}/${o.tokenId}`}
+            className="group block border-b border-r border-line no-underline last:border-r hover:bg-transparent"
+            title={`${o.name}${o.burned ? ' (burned)' : ''}`}
+          >
+            <ObjectSprite object={o} fluid className={o.burned ? 'opacity-40' : ''} />
+          </Link>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-wrap gap-[3px] p-2">
       {objects.map((o) => (
@@ -257,9 +285,6 @@ export function ObjectGrid({
           </span>
         </Link>
       ))}
-      {objects.length === 0 ? (
-        <p className="font-mono text-[11px] text-muted-foreground">no objects</p>
-      ) : null}
     </div>
   )
 }
