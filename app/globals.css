@@ -6,21 +6,23 @@
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
   --color-line: var(--line);
   --color-hair: var(--hair);
-  --color-lime: var(--lime);
+  --color-clay: var(--clay);
+  --color-clay-foreground: var(--clay-foreground);
   --color-link: var(--link);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--line);
   --color-card: var(--surface);
   --color-card-foreground: var(--foreground);
-  --color-primary: var(--lime);
-  --color-primary-foreground: var(--foreground);
+  --color-primary: var(--clay);
+  --color-primary-foreground: var(--clay-foreground);
   --color-secondary: var(--surface-2);
   --color-secondary-foreground: var(--foreground);
-  --color-accent: var(--lime);
-  --color-accent-foreground: var(--foreground);
+  --color-accent: var(--clay);
+  --color-accent-foreground: var(--clay-foreground);
   --color-destructive: var(--destructive);
   --color-input: var(--line);
   --color-ring: var(--line);
@@ -35,19 +37,23 @@
   --radius-xl: 0px;
 }
 
+/* Warm charcoal terminal. One accent — clay — spent on the things that are
+   live: the head, the seal bar, the active nav item, the CLAUDE mark. */
 :root {
-  color-scheme: light;
-  --background: #e4e4dc;
-  --foreground: #14150f;
-  --surface: #ffffff;
-  --surface-2: #f0f0e8;
-  --line: #14150f;
-  --hair: #d5d5cb;
-  --lime: #d2fd00;
-  --link: #0b3ea8;
-  --muted: #f0f0e8;
-  --muted-foreground: #6a6b60;
-  --destructive: #a81111;
+  color-scheme: dark;
+  --background: #171412;
+  --foreground: #f1eae0;
+  --surface: #1f1b18;
+  --surface-2: #29241f;
+  --ink: #0e0c0b;
+  --line: #5e5148;
+  --hair: #342d28;
+  --clay: #d97757;
+  --clay-foreground: #171412;
+  --link: #f0b995;
+  --muted: #29241f;
+  --muted-foreground: #9d8f83;
+  --destructive: #ff7a70;
 }
 
 @layer base {
@@ -58,8 +64,8 @@
 
   html {
     background-color: var(--background);
-    background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
+    background-image: linear-gradient(0deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
     background-size: 4px 4px;
   }
 
@@ -77,13 +83,13 @@
   }
 
   a:hover {
-    background-color: var(--lime);
-    color: var(--foreground);
+    background-color: var(--clay);
+    color: var(--clay-foreground);
   }
 
   ::selection {
-    background: var(--lime);
-    color: var(--foreground);
+    background: var(--clay);
+    color: var(--clay-foreground);
   }
 
   input,
@@ -91,7 +97,7 @@
   textarea {
     font-family: var(--font-mono);
     font-size: 11px;
-    background: #fff;
+    background: var(--ink);
     border: 1px solid var(--line);
     padding: 2px 4px;
     color: var(--foreground);
@@ -102,7 +108,7 @@
   textarea:focus-visible,
   button:focus-visible,
   a:focus-visible {
-    outline: 2px solid var(--link);
+    outline: 2px solid var(--clay);
     outline-offset: 0px;
   }
 }
@@ -118,8 +124,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    background: var(--foreground);
-    color: var(--lime);
+    background: var(--ink);
+    color: var(--clay);
     border-bottom: 1px solid var(--line);
     padding: 2px 6px;
     font-family: var(--font-mono);
@@ -129,9 +135,9 @@
     font-weight: 700;
   }
 
-  .panel-hd--lime {
-    background: var(--lime);
-    color: var(--foreground);
+  .panel-hd--clay {
+    background: var(--clay);
+    color: var(--clay-foreground);
   }
 
   .panel-hd--plain {
@@ -158,7 +164,7 @@
     font-size: 9px;
     letter-spacing: 0.07em;
     text-transform: uppercase;
-    color: #43443a;
+    color: var(--muted-foreground);
     white-space: nowrap;
   }
 
@@ -170,7 +176,7 @@
   }
 
   .tbl tbody tr:hover {
-    background: #f6ffd0;
+    background: rgba(217, 119, 87, 0.09);
   }
 
   .tbl tbody tr:last-child td {
@@ -186,7 +192,7 @@
     align-items: center;
     gap: 4px;
     border: 1px solid var(--line);
-    background: #fff;
+    background: var(--surface);
     color: var(--foreground);
     font-family: var(--font-mono);
     font-size: 10px;
@@ -199,19 +205,20 @@
   }
 
   .btn:hover {
-    background: var(--lime);
-    color: var(--foreground);
+    background: var(--clay);
+    color: var(--clay-foreground);
   }
 
   .btn[data-on='true'] {
-    background: var(--foreground);
-    color: var(--lime);
+    background: var(--clay);
+    color: var(--clay-foreground);
+    border-color: var(--clay);
   }
 
   .btn[disabled],
   .btn[data-disabled='true'] {
-    color: #9a9b90;
-    border-color: #b5b6aa;
+    color: #6d625a;
+    border-color: #3f3731;
     background: var(--surface-2);
     cursor: default;
     pointer-events: none;
@@ -233,14 +240,37 @@
     border-top: 1px solid var(--hair);
   }
 
-  .sprite {
-    display: block;
-    background-repeat: no-repeat;
-    background-size: 400% 400%;
-    image-rendering: pixelated;
+  /* Agent glyph: a 5x5 symmetric grid keyed off the agent address. */
+  .glyph {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
     border: 1px solid var(--line);
-    background-color: var(--surface-2);
+    background: var(--ink);
+    padding: 12%;
+    gap: 6%;
     flex: none;
+    aspect-ratio: 1;
+  }
+
+  .glyph > i {
+    display: block;
+    background: transparent;
+  }
+
+  .glyph > i[data-on='1'] {
+    background: var(--foreground);
+  }
+
+  .glyph > i[data-on='2'] {
+    background: var(--clay);
+  }
+
+  .glyph[data-tier='opus'] {
+    border-color: var(--clay);
+  }
+
+  .glyph[data-halted='true'] {
+    opacity: 0.35;
   }
 }
 
@@ -250,7 +280,7 @@
    on the new row only, and never on the rows that merely shifted down. */
 @keyframes row-in {
   from {
-    background: var(--lime);
+    background: rgba(217, 119, 87, 0.55);
   }
   to {
     background: transparent;
@@ -268,6 +298,18 @@
   }
 }
 
+/* The cursor on the thinking indicator. */
+@keyframes blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
 .row-in {
   animation: row-in 900ms ease-out 1;
 }
@@ -280,8 +322,13 @@
   animation-iteration-count: 1;
 }
 
+.blink {
+  animation: blink 1s steps(1) infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .row-in {
+  .row-in,
+  .blink {
     animation: none;
   }
 

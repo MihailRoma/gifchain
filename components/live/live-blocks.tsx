@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { useMemo } from 'react'
 import { heightAtTime } from '@/lib/chain/constants'
-import { dec, num } from '@/lib/chain/format'
-import { liveBlocksTo, type SpriteRef } from '@/lib/chain/live'
+import { dec, num, tok } from '@/lib/chain/format'
+import { liveBlocksTo, type AgentRef } from '@/lib/chain/live'
 import { Age } from './age'
 import { Dash, RefThumb } from './primitives'
 import { useNow } from './now-provider'
@@ -21,7 +21,7 @@ export function LiveBlocks({
   limit = 20,
   compact = false,
 }: {
-  pool: SpriteRef[]
+  pool: AgentRef[]
   limit?: number
   compact?: boolean
 }) {
@@ -37,14 +37,15 @@ export function LiveBlocks({
             <th>block</th>
             <th>age</th>
             <th>txs</th>
-            <th>mints</th>
-            <th>xfers</th>
-            <th>burns</th>
+            <th>infer</th>
+            <th>memory</th>
+            <th>spawns</th>
+            <th>tokens</th>
             {!compact && <th>gas used</th>}
             {!compact && <th>size</th>}
             <th>fees</th>
-            <th>sequencer</th>
-            <th>objects</th>
+            <th>sealer</th>
+            <th>agents</th>
           </tr>
         </thead>
         <tbody>
@@ -59,9 +60,10 @@ export function LiveBlocks({
                 <Age ts={b.ts} />
               </td>
               <td className="num">{b.txCount}</td>
-              <td className="num">{b.mints}</td>
-              <td className="num">{b.transfers}</td>
-              <td className="num">{b.burns}</td>
+              <td className="num">{b.inferences}</td>
+              <td className="num">{b.memoryWrites}</td>
+              <td className="num">{b.spawns}</td>
+              <td className="num">{b.tokens ? tok(b.tokens) : <Dash />}</td>
               {!compact && <td className="num">{num(b.gasUsed)}</td>}
               {!compact && <td className="num">{num(b.size)} B</td>}
               <td className="num">{dec(b.fees, 4)}</td>
@@ -71,9 +73,7 @@ export function LiveBlocks({
                   {b.txs
                     .filter((t) => t.ref)
                     .slice(0, 6)
-                    .map((t) => (
-                      <RefThumb key={t.hash} ref={t.ref!} />
-                    ))}
+                    .map((t) => <RefThumb key={t.hash} ref={t.ref!} />)}
                   {b.txs.every((t) => !t.ref) ? <Dash /> : null}
                 </span>
               </td>

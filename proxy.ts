@@ -10,15 +10,15 @@ import {
 /**
  * Splits one deployment into two properties.
  *
- *   gifchain.art           protocol site   /, /objects, /collections, /mint, /docs
- *   explorer.gifchain.art  block explorer  /, /blocks, /tx, /wallet, /stats
+ *   claudechain.ai           protocol site   /, /agents, /swarms, /spawn, /docs
+ *   explorer.claudechain.ai  block explorer  /, /blocks, /tx, /wallet, /stats
  *
  * Chain routes keep their real paths on both hosts, so the only rewrite needed
  * is the explorer's root. Everything else is a redirect from the protocol
- * domain to the explorer domain, plus an `x-gif-site` hint the root layout uses
+ * domain to the explorer domain, plus an `x-cc-site` hint the root layout uses
  * to pick which chrome to render.
  *
- * Preview and localhost have no `explore.` subdomain, so there the explorer is
+ * Preview and localhost have no `explorer.` subdomain, so there the explorer is
  * identified by path and nothing is redirected — both properties stay reachable
  * from a single origin.
  */
@@ -36,12 +36,11 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(`${EXPLORER_URL}${target}${search}`, 308)
   }
 
-  const site = onExplorerHost || (!isCanonicalHost(hostname) && isExplorerPath(pathname))
-    ? 'explorer'
-    : 'main'
+  const site =
+    onExplorerHost || (!isCanonicalHost(hostname) && isExplorerPath(pathname)) ? 'explorer' : 'main'
 
   const headers = new Headers(request.headers)
-  headers.set('x-gif-site', site)
+  headers.set('x-cc-site', site)
 
   // The explorer's landing page lives at /explorer in the tree but is the root
   // of its own domain.
@@ -55,5 +54,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|objects/.*\\.png|.*\\.png$).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|icon|opengraph-image|.*\\.png$).*)'],
 }

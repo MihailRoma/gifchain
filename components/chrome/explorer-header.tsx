@@ -8,7 +8,7 @@ import { ExplorerNav } from './explorer-nav'
 import { SearchBox } from './search-box'
 
 /**
- * Chrome for explore.gif.com. Deliberately unlike the protocol site: no
+ * Chrome for explorer.claudechain.ai. Deliberately unlike the protocol site: no
  * marketing copy, search promoted to the top, and the network readout carrying
  * the live head.
  */
@@ -19,27 +19,27 @@ export function ExplorerHeader({ onExplorerHost }: { onExplorerHost: boolean }) 
 
   return (
     <header className="mb-2">
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 border border-line bg-foreground px-2 py-0.5 font-mono text-[10px] text-white">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 border border-line bg-ink px-2 py-0.5 font-mono text-[10px] text-foreground">
         <span className="flex flex-wrap items-center gap-x-3">
-          <span className="text-lime">{CHAIN.networkId}</span>
+          <span className="text-clay">{CHAIN.networkId}</span>
           <span>
-            GIF <span className="text-lime">${dec(CHAIN.gifPriceUsd)}</span>
+            CLAUDE <span className="text-clay">${dec(CHAIN.claudePriceUsd)}</span>
           </span>
           <span>
             head{' '}
-            <span className="text-lime">
+            <span className="text-clay">
               #<LiveHeight />
             </span>
           </span>
           <span>{measuredBlockTime(1000).toFixed(2)}s block</span>
-          <span>{stats.gasPrice} ngif</span>
+          <span>{stats.gasPrice} ncl</span>
         </span>
         <span className="flex flex-wrap items-center gap-x-3">
           <span className="flex items-center gap-1">
-            <span aria-hidden className="inline-block h-[7px] w-[7px] bg-lime" />
+            <span aria-hidden className="inline-block h-[7px] w-[7px] bg-clay" />
             indexer synced
           </span>
-          <a href={protocolHref} className="text-white">
+          <a href={protocolHref} className="text-foreground">
             {ROOT_DOMAIN}
           </a>
         </span>
@@ -49,7 +49,7 @@ export function ExplorerHeader({ onExplorerHost }: { onExplorerHost: boolean }) 
         <div>
           <Link href={home} className="block no-underline hover:bg-transparent">
             <span className="block font-mono text-[22px] font-bold leading-none tracking-[-0.03em] text-foreground">
-              GIF<span className="bg-lime px-0.5">SCAN</span>
+              CLAUDE<span className="bg-clay px-0.5 text-clay-foreground">SCAN</span>
             </span>
           </Link>
           <p className="mt-1 font-mono text-[10px] text-muted-foreground">{EXPLORER_DOMAIN}</p>
@@ -57,7 +57,7 @@ export function ExplorerHeader({ onExplorerHost }: { onExplorerHost: boolean }) 
         <div className="min-w-[260px] flex-1">
           <SearchBox big />
           <p className="mt-1 font-mono text-[10px] text-muted-foreground">
-            search by block height, transaction hash, account address, object id or collection
+            search by block height, transaction hash, account address, agent name or swarm
           </p>
         </div>
       </div>

@@ -14,19 +14,20 @@ const COLUMNS: Array<{ title: string; links: Array<[string, string]> }> = [
     ],
   },
   {
-    title: 'objects',
+    title: 'agents',
     links: [
-      ['Object activity', '/activity'],
-      ['All objects', '/objects'],
-      ['Collections', '/collections'],
+      ['Inference feed', '/activity'],
+      ['All agents', '/agents'],
+      ['Swarms', '/swarms'],
       ['Analytics', '/stats'],
     ],
   },
 ]
 
-/** Chrome for explore.gif.com. Utility links only; no marketing surface. */
+/** Chrome for explorer.claudechain.ai. Utility links only; no marketing surface. */
 export function ExplorerFooter({ onExplorerHost }: { onExplorerHost: boolean }) {
   const root = onExplorerHost ? `https://${ROOT_DOMAIN}` : '/'
+  const prefix = root === '/' ? '' : root
 
   return (
     <footer className="mt-2">
@@ -51,16 +52,16 @@ export function ExplorerFooter({ onExplorerHost }: { onExplorerHost: boolean }) 
           </h2>
           <ul className="font-mono text-[11px]">
             <li className="leading-[1.6]">
-              <a href={`${root === '/' ? '' : root}/developers`}>RPC endpoint</a>
+              <a href={`${prefix}/developers`}>RPC endpoint</a>
             </li>
             <li className="leading-[1.6]">
-              <a href={`${root === '/' ? '' : root}/developers/rest`}>REST API</a>
+              <a href={`${prefix}/developers/rest`}>REST API</a>
             </li>
             <li className="leading-[1.6]">
-              <a href={`${root === '/' ? '' : root}/developers/graphql`}>GraphQL</a>
+              <a href={`${prefix}/developers/graphql`}>GraphQL</a>
             </li>
             <li className="leading-[1.6]">
-              <a href={`${root === '/' ? '' : root}/docs`}>Documentation</a>
+              <a href={`${prefix}/docs`}>Documentation</a>
             </li>
           </ul>
         </div>
@@ -82,12 +83,12 @@ export function ExplorerFooter({ onExplorerHost }: { onExplorerHost: boolean }) 
       </div>
       <div className="mt-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border border-line bg-surface px-2 py-1 font-mono text-[10px] text-muted-foreground">
         <span>
-          {EXPLORER_DOMAIN} {'\u00b7'} indexer node 04 {'\u00b7'} object trie proofs verified against
+          {EXPLORER_DOMAIN} {'\u00b7'} indexer node 04 {'\u00b7'} memory trie proofs verified against
           block headers
         </span>
         <span>
-          simulated network data {'\u00b7'} nothing here settles anywhere {'\u00b7'} built for the
-          fun of it
+          simulated network data {'\u00b7'} nothing here settles anywhere {'\u00b7'} not affiliated
+          with Anthropic
         </span>
       </div>
     </footer>

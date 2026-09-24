@@ -14,10 +14,16 @@ async function resolveSite() {
   const h = await headers()
   const host = (h.get('host') ?? '').split(':')[0].toLowerCase()
   return {
-    isExplorer: h.get('x-gif-site') === 'explorer',
+    isExplorer: h.get('x-cc-site') === 'explorer',
     onExplorerHost: isExplorerHost(host),
   }
 }
+
+const SITE_DESCRIPTION =
+  'CLAUDECHAIN is a layer-1 network where inference is the primary unit of state. Autonomous agents live on chain with their own memory; every prompt and completion is a settled transaction.'
+
+const EXPLORER_DESCRIPTION =
+  'Search CLAUDECHAIN blocks, transactions, accounts, contracts and on-chain agents. Live head, memory trie proofs and full inference history.'
 
 export async function generateMetadata(): Promise<Metadata> {
   const { isExplorer } = await resolveSite()
@@ -26,27 +32,22 @@ export async function generateMetadata(): Promise<Metadata> {
     return {
       metadataBase: new URL(EXPLORER_URL),
       title: {
-        default: 'GIFSCAN \u00b7 GIFCHAIN explorer',
-        template: '%s \u00b7 GIFSCAN',
+        default: 'CLAUDESCAN \u00b7 CLAUDECHAIN explorer',
+        template: '%s \u00b7 CLAUDESCAN',
       },
-      description:
-        'Search GIFCHAIN blocks, transactions, accounts, contracts and on-chain objects. Live head, object trie proofs and full transaction history.',
+      description: EXPLORER_DESCRIPTION,
       generator: 'v0.app',
       openGraph: {
         type: 'website',
-        siteName: 'GIFSCAN',
-        title: 'GIFSCAN \u00b7 GIFCHAIN explorer',
-        description:
-          'Search GIFCHAIN blocks, transactions, accounts, contracts and on-chain objects.',
+        siteName: 'CLAUDESCAN',
+        title: 'CLAUDESCAN \u00b7 CLAUDECHAIN explorer',
+        description: EXPLORER_DESCRIPTION,
         url: EXPLORER_URL,
-        images: [{ url: '/og.png', width: 1358, height: 677, alt: 'GIFCHAIN' }],
       },
       twitter: {
         card: 'summary_large_image',
-        title: 'GIFSCAN \u00b7 GIFCHAIN explorer',
-        description:
-          'Search GIFCHAIN blocks, transactions, accounts, contracts and on-chain objects.',
-        images: ['/og.png'],
+        title: 'CLAUDESCAN \u00b7 CLAUDECHAIN explorer',
+        description: EXPLORER_DESCRIPTION,
       },
     }
   }
@@ -54,34 +55,29 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(ROOT_URL),
     title: {
-      default: 'GIFCHAIN \u00b7 the blockchain for NFTs',
-      template: '%s \u00b7 GIFCHAIN',
+      default: 'CLAUDECHAIN \u00b7 the blockchain that thinks',
+      template: '%s \u00b7 CLAUDECHAIN',
     },
-    description:
-      'GIFCHAIN is an object-native network. Explore blocks, transactions, collections, wallets and every digital object on chain.',
+    description: SITE_DESCRIPTION,
     generator: 'v0.app',
     openGraph: {
       type: 'website',
-      siteName: 'GIFCHAIN',
-      title: 'GIFCHAIN \u00b7 the blockchain for NFTs',
-      description:
-        'A layer-1 network where the object is the primary unit of state. NFTs, GIFs, JPEGs and digital objects live, move and evolve onchain.',
+      siteName: 'CLAUDECHAIN',
+      title: 'CLAUDECHAIN \u00b7 the blockchain that thinks',
+      description: SITE_DESCRIPTION,
       url: ROOT_URL,
-      images: [{ url: '/og.png', width: 1358, height: 677, alt: 'GIFCHAIN \u2014 the blockchain for NFTs' }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'GIFCHAIN \u00b7 the blockchain for NFTs',
-      description:
-        'A layer-1 network where the object is the primary unit of state. NFTs, GIFs, JPEGs and digital objects live, move and evolve onchain.',
-      images: ['/og.png'],
+      title: 'CLAUDECHAIN \u00b7 the blockchain that thinks',
+      description: SITE_DESCRIPTION,
     },
   }
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'light',
-  themeColor: '#d2fd00',
+  colorScheme: 'dark',
+  themeColor: '#171412',
 }
 
 export default async function RootLayout({

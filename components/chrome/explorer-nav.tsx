@@ -7,10 +7,12 @@ const LINKS: Array<{ href: string; label: string; match?: string[] }> = [
   { href: '/blocks', label: 'blocks', match: ['/block'] },
   { href: '/txs', label: 'transactions', match: ['/tx'] },
   { href: '/wallets', label: 'accounts', match: ['/wallet'] },
-  { href: '/activity', label: 'object activity' },
+  { href: '/activity', label: 'inference feed' },
   { href: '/contracts', label: 'contracts' },
   { href: '/stats', label: 'analytics' },
 ]
+
+const ACTIVE = 'bg-clay text-clay-foreground hover:bg-clay'
 
 export function ExplorerNav({ homeHref }: { homeHref: string }) {
   const pathname = usePathname() || '/'
@@ -25,9 +27,7 @@ export function ExplorerNav({ homeHref }: { homeHref: string }) {
       <Link
         href={homeHref}
         aria-current={onHome ? 'page' : undefined}
-        className={`border-r border-hair px-2 py-[3px] no-underline ${
-          onHome ? 'bg-foreground text-lime hover:bg-foreground hover:text-lime' : 'text-foreground'
-        }`}
+        className={`border-r border-hair px-2 py-[3px] no-underline ${onHome ? ACTIVE : 'text-foreground'}`}
       >
         overview
       </Link>
@@ -41,11 +41,7 @@ export function ExplorerNav({ homeHref }: { homeHref: string }) {
             key={l.href}
             href={l.href}
             aria-current={active ? 'page' : undefined}
-            className={`border-r border-hair px-2 py-[3px] no-underline ${
-              active
-                ? 'bg-foreground text-lime hover:bg-foreground hover:text-lime'
-                : 'text-foreground'
-            }`}
+            className={`border-r border-hair px-2 py-[3px] no-underline ${active ? ACTIVE : 'text-foreground'}`}
           >
             {l.label}
           </Link>

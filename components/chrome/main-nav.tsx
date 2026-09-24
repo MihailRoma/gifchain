@@ -10,9 +10,9 @@ import { usePathname } from 'next/navigation'
  */
 const LINKS: Array<{ href: string; label: string; match?: string[] }> = [
   { href: '/', label: 'home' },
-  { href: '/objects', label: 'objects', match: ['/object'] },
-  { href: '/collections', label: 'collections' },
-  { href: '/mint', label: 'mint' },
+  { href: '/agents', label: 'agents', match: ['/agent'] },
+  { href: '/swarms', label: 'swarms' },
+  { href: '/spawn', label: 'spawn' },
   { href: '/bridge', label: 'bridge' },
   { href: '/developers', label: 'developers' },
   { href: '/docs', label: 'docs' },
@@ -38,9 +38,7 @@ export function MainNav({ explorerHref }: { explorerHref: string }) {
             href={l.href}
             aria-current={active ? 'page' : undefined}
             className={`border-r border-hair px-2 py-[3px] no-underline ${
-              active
-                ? 'bg-foreground text-lime hover:bg-foreground hover:text-lime'
-                : 'text-foreground'
+              active ? 'bg-clay text-clay-foreground hover:bg-clay' : 'text-foreground'
             }`}
           >
             {l.label}
@@ -51,9 +49,9 @@ export function MainNav({ explorerHref }: { explorerHref: string }) {
         href={explorerHref}
         target="_blank"
         rel="noopener noreferrer"
-        className="ml-auto border-l border-hair bg-lime px-2 py-[3px] font-bold text-foreground no-underline hover:bg-lime"
+        className="ml-auto border-l border-hair bg-ink px-2 py-[3px] font-bold text-clay no-underline hover:bg-clay hover:text-clay-foreground"
       >
-        explorer {'\u2197'}
+        claudescan {'\u2197'}
       </a>
     </nav>
   )

@@ -6,26 +6,25 @@
  * stay free of `data.ts` — that graph is ~1k lines and server-only, and pulling
  * it into a client bundle is what previously stalled hydration.
  *
- * Object artwork is supplied as a `SpriteRef[]` pool by the server, so the tip
- * shows real collection sprites without shipping the object index.
+ * Agents are supplied as an `AgentRef[]` pool by the server, so the tip names
+ * real agents without shipping the agent index.
  */
-import { BURN_ADDRESS, SEQUENCERS, blockTimeAt } from './constants'
+import { BURN_ADDRESS, MEMORY_MODULE, SEQUENCERS, SPAWN_MODULE, blockTimeAt } from './constants'
 import { hexFrom, int, mulberry32, pick, seedFrom } from './rng'
 
-export type LiveTxKind = 'MINT' | 'TRANSFER' | 'SALE' | 'BURN' | 'LIST' | 'BID'
+export type LiveTxKind = 'PROMPT' | 'COMPLETION' | 'MEMORY' | 'SPAWN' | 'TRANSFER' | 'HALT'
 
 /** Used when a stats window is too short to measure a real gap. */
 const FALLBACK_BLOCK_SEC = 5
 
-/** Minimal object descriptor: enough to draw a sprite and link to its page. */
-export interface SpriteRef {
+/** Minimal agent descriptor: enough to draw a glyph and link to its page. */
+export interface AgentRef {
   key: string
-  slug: string
-  tokenId: number
+  swarm: string
+  id: number
   name: string
-  sheet: string
-  cell: number
-  filter: string | null
+  address: string
+  tier: 'opus' | 'sonnet' | 'haiku'
 }
 
 export interface LiveTx {
@@ -34,10 +33,13 @@ export interface LiveTx {
   height: number
   ts: number
   index: number
-  ref: SpriteRef | null
+  ref: AgentRef | null
   from: string
   to: string
-  price: number | null
+  /** Context tokens consumed, for PROMPT and COMPLETION. */
+  tokens: number | null
+  /** CLAUDE moved, for TRANSFER. */
+  amount: number | null
   fee: number
   gasUsed: number
   status: 'success' | 'failed'
@@ -49,13 +51,14 @@ export interface LiveBlock {
   hash: string
   parentHash: string
   stateRoot: string
-  objectRoot: string
+  memoryRoot: string
   sequencer: string
   txCount: number
-  mints: number
-  transfers: number
-  burns: number
-  sales: number
+  spawns: number
+  inferences: number
+  memoryWrites: number
+  halts: number
+  tokens: number
   fees: number
   gasUsed: number
   gasLimit: number
@@ -67,17 +70,17 @@ export interface LiveBlock {
 /** Recurring participants, so the same wallets reappear across the tip. */
 const ADDRESS_POOL: string[] = Array.from(
   { length: 96 },
-  (_, i) => '0x' + hexFrom(`gifchain:addr:${i}`, 40),
+  (_, i) => '0x' + hexFrom(`claudechain:addr:${i}`, 40),
 )
 
-/** Weighted transaction mix. Transfers dominate, burns are rare. */
+/** Weighted transaction mix. Inference dominates, halts are rare. */
 const KIND_TABLE: LiveTxKind[] = [
-  ...Array<LiveTxKind>(9).fill('TRANSFER'),
-  ...Array<LiveTxKind>(5).fill('MINT'),
-  ...Array<LiveTxKind>(4).fill('SALE'),
-  ...Array<LiveTxKind>(3).fill('LIST'),
-  ...Array<LiveTxKind>(2).fill('BID'),
-  'BURN',
+  ...Array<LiveTxKind>(8).fill('PROMPT'),
+  ...Array<LiveTxKind>(8).fill('COMPLETION'),
+  ...Array<LiveTxKind>(4).fill('MEMORY'),
+  ...Array<LiveTxKind>(3).fill('TRANSFER'),
+  ...Array<LiveTxKind>(2).fill('SPAWN'),
+  'HALT',
 ]
 
 /**
@@ -86,13 +89,13 @@ const KIND_TABLE: LiveTxKind[] = [
  */
 function txCountFor(rand: () => number): number {
   const roll = rand()
-  if (roll < 0.22) return 0
-  if (roll < 0.62) return int(rand, 1, 3)
-  if (roll < 0.9) return int(rand, 4, 8)
-  return int(rand, 9, 17)
+  if (roll < 0.18) return 0
+  if (roll < 0.58) return int(rand, 1, 4)
+  if (roll < 0.9) return int(rand, 5, 10)
+  return int(rand, 11, 21)
 }
 
-export function liveBlockAt(height: number, pool: readonly SpriteRef[]): LiveBlock {
+export function liveBlockAt(height: number, pool: readonly AgentRef[]): LiveBlock {
   const rand = mulberry32(seedFrom(`live:block:${height}`))
   const ts = blockTimeAt(height)
   const count = txCountFor(rand)
@@ -101,22 +104,35 @@ export function liveBlockAt(height: number, pool: readonly SpriteRef[]): LiveBlo
   for (let i = 0; i < count; i++) {
     const kind = pick(rand, KIND_TABLE)
     const ref = pool.length ? pool[Math.floor(rand() * pool.length)] : null
-    const from = pick(rand, ADDRESS_POOL)
-    let to = pick(rand, ADDRESS_POOL)
-    if (kind === 'BURN') to = BURN_ADDRESS
-    else if (to === from) to = ADDRESS_POOL[(ADDRESS_POOL.indexOf(to) + 7) % ADDRESS_POOL.length]
+    const caller = pick(rand, ADDRESS_POOL)
+    let counter = pick(rand, ADDRESS_POOL)
+    if (counter === caller) counter = ADDRESS_POOL[(ADDRESS_POOL.indexOf(counter) + 7) % ADDRESS_POOL.length]
+    const agentAddr = ref?.address ?? counter
 
-    const priced = kind === 'SALE' || kind === 'LIST' || kind === 'BID'
+    let from = caller
+    let to = counter
+    if (kind === 'PROMPT') to = agentAddr
+    else if (kind === 'COMPLETION') {
+      from = agentAddr
+      to = caller
+    } else if (kind === 'MEMORY') {
+      from = agentAddr
+      to = MEMORY_MODULE
+    } else if (kind === 'SPAWN') from = SPAWN_MODULE
+    else if (kind === 'HALT') to = BURN_ADDRESS
+
+    const inference = kind === 'PROMPT' || kind === 'COMPLETION'
     txs.push({
       hash: '0x' + hexFrom(`live:tx:${height}:${i}`, 64),
       kind,
       height,
       ts,
       index: i,
-      ref,
-      from: kind === 'MINT' ? BURN_ADDRESS : from,
+      ref: kind === 'TRANSFER' ? null : ref,
+      from,
       to,
-      price: priced ? Math.round((0.4 + rand() * 46) * 100) / 100 : null,
+      tokens: inference ? int(rand, 180, 42_000) : kind === 'MEMORY' ? int(rand, 64, 6_000) : null,
+      amount: kind === 'TRANSFER' ? Math.round((0.4 + rand() * 460) * 100) / 100 : null,
       fee: Math.round((0.0004 + rand() * 0.0075) * 10_000) / 10_000,
       gasUsed: int(rand, 34_000, 186_000),
       // Failures are rare but real; an explorer that never shows one looks fake.
@@ -133,13 +149,14 @@ export function liveBlockAt(height: number, pool: readonly SpriteRef[]): LiveBlo
     hash: '0x' + hexFrom(`blockhash:${height}`, 64),
     parentHash: '0x' + hexFrom(`blockhash:${height - 1}`, 64),
     stateRoot: '0x' + hexFrom(`stateroot:${height}`, 64),
-    objectRoot: '0x' + hexFrom(`objectroot:${height}`, 64),
+    memoryRoot: '0x' + hexFrom(`memoryroot:${height}`, 64),
     sequencer: SEQUENCERS[height % SEQUENCERS.length],
     txCount: txs.length,
-    mints: txs.filter((t) => t.kind === 'MINT').length,
-    transfers: txs.filter((t) => t.kind === 'TRANSFER' || t.kind === 'SALE').length,
-    burns: txs.filter((t) => t.kind === 'BURN').length,
-    sales: txs.filter((t) => t.kind === 'SALE').length,
+    spawns: txs.filter((t) => t.kind === 'SPAWN').length,
+    inferences: txs.filter((t) => t.kind === 'PROMPT' || t.kind === 'COMPLETION').length,
+    memoryWrites: txs.filter((t) => t.kind === 'MEMORY').length,
+    halts: txs.filter((t) => t.kind === 'HALT').length,
+    tokens: txs.reduce((a, t) => a + (t.tokens ?? 0), 0),
     fees: Math.round(fees * 10_000) / 10_000,
     gasUsed,
     gasLimit: 30_000_000,
@@ -150,11 +167,7 @@ export function liveBlockAt(height: number, pool: readonly SpriteRef[]): LiveBlo
 }
 
 /** `count` blocks ending at `head`, newest first. */
-export function liveBlocksTo(
-  head: number,
-  count: number,
-  pool: readonly SpriteRef[],
-): LiveBlock[] {
+export function liveBlocksTo(head: number, count: number, pool: readonly AgentRef[]): LiveBlock[] {
   const out: LiveBlock[] = []
   for (let i = 0; i < count; i++) {
     const h = head - i
@@ -165,7 +178,7 @@ export function liveBlocksTo(
 }
 
 /** Newest-first transactions drawn from the blocks ending at `head`. */
-export function liveTxsTo(head: number, count: number, pool: readonly SpriteRef[]): LiveTx[] {
+export function liveTxsTo(head: number, count: number, pool: readonly AgentRef[]): LiveTx[] {
   const out: LiveTx[] = []
   for (let h = head; h > head - 400 && out.length < count; h--) {
     if (h < 1) break
@@ -182,7 +195,7 @@ export function liveTxsTo(head: number, count: number, pool: readonly SpriteRef[
 export function findLiveTx(
   hash: string,
   head: number,
-  pool: readonly SpriteRef[],
+  pool: readonly AgentRef[],
   depth = 2_000,
 ): LiveTx | null {
   const target = hash.toLowerCase()
@@ -195,7 +208,7 @@ export function findLiveTx(
 }
 
 /** Rolling averages over the tip, for the explorer's network cards. */
-export function liveTipStats(head: number, pool: readonly SpriteRef[], window = 120) {
+export function liveTipStats(head: number, pool: readonly AgentRef[], window = 120) {
   const blocks = liveBlocksTo(head, window, pool)
   const txs = blocks.reduce((a, b) => a + b.txCount, 0)
   const span = blocks.length > 1 ? blocks[0].ts - blocks[blocks.length - 1].ts : 0
@@ -206,10 +219,11 @@ export function liveTipStats(head: number, pool: readonly SpriteRef[], window = 
     /** Mean seal gap over the window, seconds. */
     avgBlockTime: blocks.length > 1 ? span / 1000 / (blocks.length - 1) : FALLBACK_BLOCK_SEC,
     tps: txs / seconds,
+    tokens: blocks.reduce((a, b) => a + b.tokens, 0),
+    tokensPerSec: blocks.reduce((a, b) => a + b.tokens, 0) / seconds,
     gasUsed: blocks.reduce((a, b) => a + b.gasUsed, 0),
     fees: blocks.reduce((a, b) => a + b.fees, 0),
     baseFee: blocks.reduce((a, b) => a + b.baseFee, 0) / (blocks.length || 1),
-    fullness:
-      blocks.reduce((a, b) => a + b.gasUsed / b.gasLimit, 0) / (blocks.length || 1),
+    fullness: blocks.reduce((a, b) => a + b.gasUsed / b.gasLimit, 0) / (blocks.length || 1),
   }
 }

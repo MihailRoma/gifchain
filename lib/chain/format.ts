@@ -14,8 +14,16 @@ export function dec(value: number, places = 2): string {
   })
 }
 
-export function gif(value: number, places = 2): string {
-  return `${dec(value, places)} GIF`
+/** Gas-token amounts. */
+export function claude(value: number, places = 2): string {
+  return `${dec(value, places)} CLAUDE`
+}
+
+/** Token counts, as in context tokens processed by an inference. */
+export function tok(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M tok`
+  if (value >= 10_000) return `${(value / 1000).toFixed(1)}k tok`
+  return `${num(value)} tok`
 }
 
 export function usd(value: number): string {
@@ -29,7 +37,8 @@ export function pct(value: number): string {
 
 export function bytes(value: number): string {
   if (value < 1024) return `${value} B`
-  return `${(value / 1024).toFixed(2)} KB`
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(2)} KB`
+  return `${(value / 1024 / 1024).toFixed(2)} MB`
 }
 
 /**

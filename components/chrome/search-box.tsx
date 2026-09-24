@@ -18,7 +18,7 @@ export function SearchBox({ big = false }: { big?: boolean }) {
   return (
     <form onSubmit={submit} className="flex items-stretch gap-1" role="search">
       <label className="sr-only" htmlFor={big ? 'q-big' : 'q-top'}>
-        Search GIFCHAIN
+        Search CLAUDECHAIN
       </label>
       <select
         aria-label="Search scope"
@@ -29,15 +29,15 @@ export function SearchBox({ big = false }: { big?: boolean }) {
         <option value="all">all</option>
         <option value="block">block</option>
         <option value="tx">tx</option>
-        <option value="object">object</option>
-        <option value="collection">collection</option>
+        <option value="agent">agent</option>
+        <option value="swarm">swarm</option>
         <option value="wallet">wallet</option>
       </select>
       <input
         id={big ? 'q-big' : 'q-top'}
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="block / tx / wallet / object / collection"
+        placeholder="block / tx / wallet / agent / swarm"
         className={big ? 'w-full' : 'w-[220px] md:w-[300px]'}
         style={big ? { fontSize: 13, padding: '5px 7px' } : undefined}
         autoComplete="off"

@@ -1,5 +1,5 @@
 /**
- * GIFCHAIN block timing.
+ * CLAUDECHAIN block timing.
  *
  * The chain is a pure function of wall-clock time: there is no stored state and
  * no frozen snapshot. Block N is sealed at `blockTimeAt(N)`, so the head height
@@ -68,39 +68,49 @@ export function nextBlockTimeAfter(now: number): number {
   return blockTimeAt(heightAtTime(now) + 1)
 }
 
-/** Sequencer set. Lives here so client bundles can name a proposer cheaply. */
+/**
+ * Sealer set. Every block on CLAUDECHAIN is sealed by an agent, not a
+ * datacenter; the suffix names the model tier the sealer runs on. Lives here so
+ * client bundles can name a proposer cheaply.
+ */
 export const SEQUENCERS = [
-  'seq-01.ams',
-  'seq-02.ams',
-  'seq-03.nrt',
-  'seq-04.iad',
-  'seq-05.sfo',
-  'seq-06.gru',
-  'seq-07.sin',
-  'seq-08.fra',
+  'sealer-01.opus',
+  'sealer-02.opus',
+  'sealer-03.sonnet',
+  'sealer-04.sonnet',
+  'sealer-05.sonnet',
+  'sealer-06.haiku',
+  'sealer-07.haiku',
+  'sealer-08.haiku',
 ] as const
 
 export const CHAIN = {
-  name: 'GIFCHAIN',
-  ticker: 'GIF',
-  chainId: 6464,
-  networkId: 'gifchain-mainnet-1',
+  name: 'CLAUDECHAIN',
+  ticker: 'CLAUDE',
+  chainId: 4242,
+  networkId: 'claudechain-mainnet-1',
   blockTimeMs: BLOCK_BASE_MS,
   /** Nominal block time shown in copy, in seconds. */
   blockTimeSec: BLOCK_BASE_MS / 1000,
-  /** How many recent blocks the object indexer keeps hot. */
+  /** How many recent blocks the agent indexer keeps hot. */
   indexWindow: 2000,
   /** Finality depth, in seals after inclusion. */
   finalityDepth: 2,
-  rpcHttp: 'https://rpc.gifchain.art',
-  rpcWs: 'wss://rpc.gifchain.art/ws',
-  restBase: 'https://api.gifchain.art/v1',
-  graphBase: 'https://index.gifchain.art/graphql',
-  gifPriceUsd: 3.42,
+  rpcHttp: 'https://rpc.claudechain.ai',
+  rpcWs: 'wss://rpc.claudechain.ai/ws',
+  restBase: 'https://api.claudechain.ai/v1',
+  graphBase: 'https://index.claudechain.ai/graphql',
+  claudePriceUsd: 1.87,
 } as const
 
 export const BURN_ADDRESS = '0x0000000000000000000000000000000000000000'
 export const NULL_HASH = '0x' + '0'.repeat(64)
+
+/** Protocol modules. Fixed low addresses so they read as system accounts. */
+export const SPAWN_MODULE = '0x00000000000000000000000000000000000000f1'
+export const MEMORY_MODULE = '0x00000000000000000000000000000000000000a7'
+export const BRIDGE_VAULT = '0x00000000000000000000000000000000000000b2'
+export const FEE_SPLITTER = '0x00000000000000000000000000000000000000c3'
 
 /** Back-compat alias: every timestamp on the chain comes from the same curve. */
 export const heightToTs = blockTimeAt

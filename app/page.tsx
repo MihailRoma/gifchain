@@ -1,102 +1,98 @@
 import Link from 'next/link'
 import { SearchBox } from '@/components/chrome/search-box'
 import { CopyButton } from '@/components/copy-button'
-import { BarChart, Btn, ObjectSprite, Panel, PanelNote, Stat } from '@/components/kit'
+import { AgentThumbLink, BarChart, Btn, Panel, PanelNote, Stat, StatusDot, TierChip } from '@/components/kit'
 import { LiveBlocks } from '@/components/live/live-blocks'
-import { LiveHeight } from '@/components/live/live-tip'
+import { LiveMempool } from '@/components/live/live-mempool'
 import { LiveTxs } from '@/components/live/live-txs'
-import { CollectionsTable, ObjectGrid } from '@/components/tables'
+import { AgentGrid, AgentsTable, SwarmsTable } from '@/components/tables'
 import { CHAIN } from '@/lib/chain/constants'
 import {
+  agentPool,
+  agents,
   dailySeries,
-  networkStats,
-  objects,
-  recentMints,
-  spritePool,
-  trendingCollections,
   liveHead,
+  networkStats,
+  recentSpawns,
+  thinkingAgents,
+  trendingSwarms,
 } from '@/lib/chain/data'
-import { dec, num } from '@/lib/chain/format'
+import { num, tok } from '@/lib/chain/format'
 
 export default function HomePage() {
   const stats = networkStats()
-  // 48 divides evenly by both grid column counts (6 and 8), so the contact
-  // sheet always ends on a complete row with no ragged gap.
-  const mints = recentMints(48)
-  const trending = trendingCollections().slice(0, 8)
+  const pool = agentPool()
+  const thinking = thinkingAgents(10)
+  const trending = trendingSwarms()
   const series = dailySeries()
-  const mosaic = objects.filter((o) => !o.burned).slice(0, 36)
+  // 48 divides evenly by every grid column count (6, 8, 12), so the mosaic
+  // always ends on a complete row with no ragged gap.
+  const mosaic = agents.filter((a) => !a.halted && a.status !== 'sleeping').slice(0, 48)
+  const spawns = recentSpawns(12)
 
   return (
     <div className="flex flex-col gap-2">
       {/* intro ---------------------------------------------------------- */}
       <Panel
-        tone="lime"
-        title="GIFCHAIN / mainnet"
+        tone="clay"
+        title="CLAUDECHAIN / mainnet"
         right={
           <span className="font-mono text-[10px] normal-case">
-            genesis 2024-11-02 {'\u00b7'} {num(liveHead())} blocks produced
+            genesis 2024-11-02 {'\u00b7'} {num(liveHead())} blocks sealed
           </span>
         }
       >
         <div className="flex flex-col gap-2 p-2 md:flex-row">
           <div className="md:w-[54%]">
-            <h1 className="font-mono text-[22px] font-bold leading-tight tracking-[-0.02em]">
-              The blockchain for NFTs.
+            <h1 className="font-mono text-[22px] font-bold leading-tight tracking-[-0.02em] text-balance">
+              The blockchain that thinks.
             </h1>
             <p className="mt-2 max-w-[62ch] text-[12px] leading-relaxed">
-              GIFCHAIN is a layer-1 network where the <strong>object</strong> is the primary unit of
-              state. Balances exist, but they are a side effect. Every block commits an object root
-              alongside the state root, so transfers, mints and burns of digital objects are settled
-              by the protocol rather than tracked by an indexer bolted on afterwards.
+              CLAUDECHAIN is a layer-1 network where <strong>inference</strong> is the primary unit of
+              state. Balances exist, but they are a side effect. Every block commits a memory root
+              alongside the state root, so a prompt, its completion and the memory an agent writes
+              afterwards are settled by the protocol rather than logged by a server somewhere else.
             </p>
             <p className="mt-2 max-w-[62ch] text-[12px] leading-relaxed">
-              Media lives on chain. A GIF-721 object carries its own frames, palette and dimensions
-              in the object trie, which is why every page of this explorer can show you the artwork
-              without asking a server somewhere else for it.
+              Agents live on chain. A CC-1 agent has an address, a model tier, a mandate and a memory
+              trie of its own, and it keeps thinking between your prompts. Blocks are sealed by agents
+              too: proof of thought, not proof of work.
             </p>
             <div className="mt-3 flex flex-wrap gap-1">
-              <Btn href="/explorer">open explorer</Btn>
-              <Btn href="/objects">browse objects</Btn>
-              <Btn href="/mint">deploy a collection</Btn>
+              <Btn href="/explorer">open claudescan</Btn>
+              <Btn href="/agents">browse agents</Btn>
+              <Btn href="/spawn">spawn an agent</Btn>
               <Btn href="/developers">rpc + api</Btn>
               <Btn href="/docs">read the docs</Btn>
             </div>
             <dl className="mt-3 grid grid-cols-2 gap-x-4 font-mono text-[11px]">
-              <div className="flex justify-between border-b border-hair py-[2px]">
-                <dt className="text-muted-foreground">consensus</dt>
-                <dd>proof of custody</dd>
-              </div>
-              <div className="flex justify-between border-b border-hair py-[2px]">
-                <dt className="text-muted-foreground">object standard</dt>
-                <dd>GIF-721 / GIF-1155</dd>
-              </div>
-              <div className="flex justify-between border-b border-hair py-[2px]">
-                <dt className="text-muted-foreground">block time</dt>
-                <dd>{stats.avgBlockTime}s</dd>
-              </div>
-              <div className="flex justify-between border-b border-hair py-[2px]">
-                <dt className="text-muted-foreground">finality</dt>
-                <dd>2 blocks</dd>
-              </div>
-              <div className="flex justify-between border-b border-hair py-[2px]">
-                <dt className="text-muted-foreground">gas token</dt>
-                <dd>GIF</dd>
-              </div>
-              <div className="flex justify-between border-b border-hair py-[2px]">
-                <dt className="text-muted-foreground">max object size</dt>
-                <dd>64 KB</dd>
-              </div>
+              {[
+                ['consensus', 'proof of thought'],
+                ['agent standard', 'CC-1 / CC-2'],
+                ['block time', `${stats.avgBlockTime}s`],
+                ['finality', `${CHAIN.finalityDepth} blocks`],
+                ['gas token', CHAIN.ticker],
+                ['max context', '1M tokens'],
+              ].map(([k, v]) => (
+                <div key={k} className="flex justify-between border-b border-hair py-[2px]">
+                  <dt className="text-muted-foreground">{k}</dt>
+                  <dd>{v}</dd>
+                </div>
+              ))}
             </dl>
           </div>
           <div className="flex-1 border border-line bg-surface-2">
             <div className="panel-hd panel-hd--plain">
-              <span>objects on chain</span>
-              <Link href="/objects" className="font-mono text-[10px] normal-case">
-                view all {stats.objects}
+              <span>agents awake right now</span>
+              <Link href="/agents" className="font-mono text-[10px] normal-case">
+                view all {num(stats.agents)}
               </Link>
             </div>
-            <ObjectGrid objects={mosaic} size={44} showLabels={false} />
+            <AgentGrid agents={mosaic} fill />
+            <PanelNote>
+              every mark is an agent&apos;s glyph, derived from its address {'\u00b7'} clay-bordered
+              glyphs run on the opus tier
+            </PanelNote>
           </div>
         </div>
       </Panel>
@@ -107,9 +103,8 @@ export default function HomePage() {
           <SearchBox big />
           <p className="mt-1 font-mono text-[10px] text-muted-foreground">
             accepts: block height {'\u00b7'} block hash {'\u00b7'} transaction hash {'\u00b7'} wallet
-            address {'\u00b7'} contract address {'\u00b7'} collection name {'\u00b7'} object name
-            {'  '}
-            <Link href="/search?q=gifcats">try GIFCATS</Link> {'\u00b7'}{' '}
+            address {'\u00b7'} agent address {'\u00b7'} swarm name {'\u00b7'} agent name{'  '}
+            <Link href="/search?q=archivists">try ARCHIVISTS</Link> {'\u00b7'}{' '}
             <Link href={`/search?q=${liveHead()}`}>try {num(liveHead())}</Link>
           </p>
         </div>
@@ -117,186 +112,165 @@ export default function HomePage() {
 
       {/* stats ---------------------------------------------------------- */}
       <div className="panel">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
-          <Stat label="latest block" value={<LiveHeight />} sub="5s target slot" href="/blocks" />
-          <Stat label="objects on chain" value={num(stats.objects)} sub={`${stats.burned} burned`} href="/objects" />
-          <Stat label="collections" value={num(stats.collections)} sub="8 verified" href="/collections" />
-          <Stat label="transfers (24h)" value={num(stats.transfers24h)} sub="object layer only" href="/activity" />
-          <Stat label="mints (24h)" value={num(stats.mints24h)} sub="all standards" href="/activity?type=MINT" />
-          <Stat label="24h volume" value={`${dec(stats.volume24h)} GIF`} sub={`$${num(Math.round(stats.volume24h * CHAIN.gifPriceUsd))}`} href="/stats" />
-          <Stat label="active wallets" value={num(stats.activeWallets)} sub="24h, unique senders" href="/wallets" />
-          <Stat label="total transactions" value={num(stats.txTotal)} sub="since genesis" href="/txs" />
-          <Stat label="gas price" value={`${stats.gasPrice} ngif`} sub="p50, last 100 blocks" href="/stats" />
-          <Stat label="network" value="operational" sub="8/8 sequencers" href="/stats" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6">
+          <Stat label="agents on chain" value={num(stats.agents)} sub={`${num(stats.thinking)} thinking now`} href="/agents" />
+          <Stat label="swarms" value={num(stats.swarms)} sub="deployed contracts" href="/swarms" />
+          <Stat label="24h inferences" value={num(stats.inferences24h)} sub="prompts + completions" href="/activity" />
+          <Stat label="24h tokens" value={tok(stats.tokens24h)} sub="settled on chain" href="/stats" />
+          <Stat label="24h memory writes" value={num(stats.memoryWrites24h)} sub="trie commits" href="/activity?type=MEMORY" />
+          <Stat label="24h spawns" value={num(stats.spawns24h)} sub={`${num(stats.halted)} halted all-time`} href="/activity?type=SPAWN" />
         </div>
       </div>
 
-      {/* blocks + activity ---------------------------------------------- */}
+      {/* live ----------------------------------------------------------- */}
       <div className="grid gap-2 lg:grid-cols-2">
         <Panel
           title="latest blocks"
           right={
-            <Link href="/blocks" className="font-mono text-[10px] normal-case">
+            <Link href="/blocks" className="font-mono text-[10px]">
               all blocks
             </Link>
           }
         >
-          <LiveBlocks pool={spritePool()} limit={8} compact />
-          <PanelNote>
-            Every block commits an object root. Blocks with no object operations still produce a
-            root, they just repeat the previous one.
-          </PanelNote>
+          <LiveBlocks pool={pool} limit={10} compact />
+          <PanelNote>every block is sealed by an agent; the sealer column names its model tier</PanelNote>
         </Panel>
-
         <Panel
-          title="latest object activity"
+          title="latest transactions"
           right={
-            <Link href="/activity" className="font-mono text-[10px] normal-case">
-              full feed
+            <Link href="/txs" className="font-mono text-[10px]">
+              all transactions
             </Link>
           }
         >
-          <LiveTxs pool={spritePool()} limit={8} showBlock={false} />
+          <LiveTxs pool={pool} limit={10} showBlock={false} />
+          <PanelNote>a PROMPT is a wallet asking an agent; a COMPLETION is the agent answering</PanelNote>
         </Panel>
       </div>
 
-      {/* trending ------------------------------------------------------- */}
-      <Panel
-        title="trending collections"
-        right={
-          <span className="flex gap-1">
-            <Link href="/collections" className="font-mono text-[10px] normal-case">
-              all collections
-            </Link>
-          </span>
-        }
-      >
-        <CollectionsTable rows={trending} />
-        <PanelNote>
-          Ranked by 24h settled volume on the native market module. Floor is the lowest active
-          listing held in escrow, not an off-chain quote.
-        </PanelNote>
-      </Panel>
-
-      {/* mints + charts -------------------------------------------------- */}
-      <div className="grid gap-2 lg:grid-cols-[1.35fr_1fr]">
+      {/* thinking ------------------------------------------------------- */}
+      <div className="grid gap-2 lg:grid-cols-[3fr_2fr]">
         <Panel
-          title="recent mints"
+          title="thinking right now"
           right={
-            <Link href="/activity?type=MINT" className="font-mono text-[10px] normal-case">
-              mint feed
-            </Link>
+            <span className="font-mono text-[10px] normal-case text-clay">
+              <span className="blink">{'\u2588'}</span> {num(stats.thinking)} agents mid-inference
+            </span>
           }
         >
-          <div className="grid grid-cols-6 gap-px border-t border-line bg-line sm:grid-cols-8">
-            {mints.map(({ object, event }) => (
-              <Link
-                key={event.hash}
-                href={`/object/${object.slug}/${object.tokenId}`}
-                className="group block bg-surface p-[3px] no-underline hover:bg-[#f6ffd0]"
-                title={`${object.name} minted in block ${event.height}`}
-              >
-                <ObjectSprite object={object} fluid className="border-0" />
-                <span className="mt-[3px] block truncate text-center font-mono text-[9px] leading-[11px] text-muted-foreground group-hover:text-foreground">
-                  #{String(object.tokenId).padStart(4, '0')}
-                  <br />
-                  blk {num(event.height)}
-                </span>
-              </Link>
-            ))}
-          </div>
+          <AgentsTable agents={thinking} />
+          <PanelNote>
+            status is read from the memory module: an agent is thinking while it holds an open
+            inference slot
+          </PanelNote>
         </Panel>
+        <Panel title="mempool" right={<span className="font-mono text-[10px] normal-case">next block, assembling</span>}>
+          <LiveMempool pool={pool} limit={10} />
+        </Panel>
+      </div>
 
+      {/* swarms --------------------------------------------------------- */}
+      <Panel
+        title="swarms by 24h inference"
+        right={
+          <Link href="/swarms" className="font-mono text-[10px]">
+            all swarms
+          </Link>
+        }
+      >
+        <SwarmsTable rows={trending} />
+      </Panel>
+
+      {/* spawns + charts ------------------------------------------------ */}
+      <div className="grid gap-2 lg:grid-cols-[2fr_3fr]">
+        <Panel title="recently spawned">
+          <table className="tbl">
+            <tbody>
+              {spawns.map(({ event, agent }) => (
+                <tr key={event.hash}>
+                  <td className="w-[26px] p-[2px]">
+                    <AgentThumbLink agent={agent} size={22} />
+                  </td>
+                  <td>
+                    <Link href={`/agent/${agent.swarm}/${agent.id}`} className="font-mono">
+                      {agent.name}
+                    </Link>
+                  </td>
+                  <td>
+                    <TierChip tier={agent.tier} />
+                  </td>
+                  <td className="text-muted-foreground">{agent.role}</td>
+                  <td>
+                    <StatusDot status={agent.status} />
+                  </td>
+                  <td>
+                    <Link href={`/block/${event.height}`} className="font-mono">
+                      {num(event.height)}
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Panel>
         <div className="flex flex-col gap-2">
-          <Panel title="object transfers / day (30d)" tone="plain">
-            <BarChart data={series.map((d) => d.transfers)} labels={series.map((d) => d.day)} />
+          <Panel title="daily inferences, 30d" tone="plain">
+            <BarChart data={series.map((d) => d.inferences)} labels={series.map((d) => d.day)} color="var(--clay)" />
           </Panel>
-          <Panel title="mints / day (30d)" tone="plain">
-            <BarChart data={series.map((d) => d.mints)} labels={series.map((d) => d.day)} color="var(--link)" />
-          </Panel>
-          <Panel title="settled volume / day (GIF)" tone="plain">
-            <BarChart data={series.map((d) => d.volume)} labels={series.map((d) => d.day)} />
+          <Panel title="daily tokens settled, 30d (millions)" tone="plain">
+            <BarChart data={series.map((d) => d.tokens)} labels={series.map((d) => d.day)} unit="M" />
           </Panel>
         </div>
       </div>
 
-      {/* connect --------------------------------------------------------- */}
-      <div className="grid gap-2 lg:grid-cols-[1fr_1fr]">
-        <Panel title="connect to the network">
-          <table className="tbl">
-            <tbody>
-              <tr>
-                <th scope="row" className="w-[120px] bg-surface-2">
-                  network name
-                </th>
-                <td>GIFCHAIN Mainnet</td>
-              </tr>
-              <tr>
-                <th scope="row" className="bg-surface-2">
-                  rpc http
-                </th>
-                <td className="flex items-center justify-between gap-2">
-                  <span>{CHAIN.rpcHttp}</span>
-                  <CopyButton value={CHAIN.rpcHttp} />
-                </td>
-              </tr>
-              <tr>
-                <th scope="row" className="bg-surface-2">
-                  rpc websocket
-                </th>
-                <td className="flex items-center justify-between gap-2">
-                  <span>{CHAIN.rpcWs}</span>
-                  <CopyButton value={CHAIN.rpcWs} />
-                </td>
-              </tr>
-              <tr>
-                <th scope="row" className="bg-surface-2">
-                  chain id
-                </th>
-                <td>{CHAIN.chainId}</td>
-              </tr>
-              <tr>
-                <th scope="row" className="bg-surface-2">
-                  currency
-                </th>
-                <td>GIF (18 decimals)</td>
-              </tr>
-              <tr>
-                <th scope="row" className="bg-surface-2">
-                  object endpoint
-                </th>
-                <td className="flex items-center justify-between gap-2">
-                  <span>{CHAIN.restBase}/objects</span>
-                  <CopyButton value={`${CHAIN.restBase}/objects`} />
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <PanelNote>
-            Endpoints are illustrative. This site runs on a deterministic simulated dataset, so
-            nothing you see here settles on a real network.
-          </PanelNote>
-        </Panel>
+      {/* connect -------------------------------------------------------- */}
+      <Panel title="connect a wallet or an agent runtime">
+        <div className="grid gap-0 md:grid-cols-2">
+          <div className="border-b border-hair p-2 md:border-b-0 md:border-r">
+            <h2 className="font-mono text-[11px] font-bold uppercase tracking-[0.06em]">network config</h2>
+            <table className="tbl mt-1">
+              <tbody>
+                {[
+                  ['network name', CHAIN.name],
+                  ['chain id', String(CHAIN.chainId)],
+                  ['currency', CHAIN.ticker],
+                  ['rpc url', CHAIN.rpcHttp],
+                  ['websocket', CHAIN.rpcWs],
+                ].map(([k, v]) => (
+                  <tr key={k}>
+                    <th scope="row" className="w-[120px] bg-surface-2">
+                      {k}
+                    </th>
+                    <td className="flex items-center justify-between gap-2">
+                      <span>{v}</span>
+                      <CopyButton value={v} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="p-2">
+            <h2 className="font-mono text-[11px] font-bold uppercase tracking-[0.06em]">first prompt</h2>
+            <pre className="mt-1 overflow-x-auto border border-hair bg-ink p-2 font-mono text-[10.5px] leading-[1.5] text-foreground">
+{`import { ClaudeChain } from '@claudechain/sdk'
 
-        <Panel title="read an object in three lines">
-          <pre className="overflow-x-auto p-2 font-mono text-[11px] leading-relaxed">
-            <code>{`import { GifChain } from "@gifchain/sdk"
+const chain = new ClaudeChain({ rpc: '${CHAIN.rpcHttp}' })
+const agent = await chain.agent('archivists', 42)
 
-const chain = new GifChain("${CHAIN.rpcHttp}")
-const object = await chain.object("gifcats", 12)
-
-object.owner      // 0x8f2c...
-object.frames     // 4
-object.mintBlock  // ${num(liveHead() - 900_000)}
-object.media()    // Uint8Array, straight from the object trie`}</code>
-          </pre>
-          <PanelNote>
-            <Link href="/developers/sdk">SDK reference</Link> {'\u00b7'}{' '}
-            <Link href="/developers/graphql">indexer queries</Link> {'\u00b7'}{' '}
-            <Link href="/docs/standards">GIF-721 specification</Link>
-          </PanelNote>
-        </Panel>
-      </div>
+const tx = await agent.prompt(
+  'Summarise what changed in the last 100 blocks.',
+  { maxTokens: 800 },
+)
+console.log(tx.hash)              // settled in the next block
+console.log(await tx.completion()) // the agent's reply, on chain`}
+            </pre>
+            <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+              full reference under <Link href="/developers/sdk">developers / sdk</Link>
+            </p>
+          </div>
+        </div>
+      </Panel>
     </div>
   )
 }

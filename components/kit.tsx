@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { collections, getWallet, type EventType, type GifObject } from '@/lib/chain/data'
+import { swarms, getWallet, type Agent, type AgentStatus, type EventType, type Tier } from '@/lib/chain/data'
 import { trunc } from '@/lib/chain/format'
-import { Sprite } from '@/components/sprite'
+import { Glyph } from '@/components/glyph'
 
 /* ------------------------------------------------------------------ panels */
 
@@ -17,7 +17,7 @@ export function Panel({
   title?: ReactNode
   right?: ReactNode
   children: ReactNode
-  tone?: 'dark' | 'lime' | 'plain'
+  tone?: 'dark' | 'clay' | 'plain'
   className?: string
   bodyClass?: string
 }) {
@@ -25,7 +25,7 @@ export function Panel({
     <section className={`panel ${className}`}>
       {title ? (
         <header
-          className={`panel-hd ${tone === 'lime' ? 'panel-hd--lime' : ''} ${
+          className={`panel-hd ${tone === 'clay' ? 'panel-hd--clay' : ''} ${
             tone === 'plain' ? 'panel-hd--plain' : ''
           }`}
         >
@@ -75,16 +75,16 @@ export function DetailList({ rows }: { rows: Array<[ReactNode, ReactNode] | null
 
 /* -------------------------------------------------------------- primitives */
 
-const CHIP_TONE: Record<EventType | 'FAILED' | 'OK', string> = {
-  MINT: 'bg-lime',
-  SALE: 'bg-white text-link border-link',
-  TRANSFER: 'bg-white',
-  BURN: 'bg-foreground text-white',
-  LIST: 'bg-surface-2',
-  BID: 'bg-surface-2 text-muted-foreground',
-  DEPLOY: 'bg-foreground text-lime',
-  FAILED: 'bg-white text-[#a81111] border-[#a81111]',
-  OK: 'bg-lime',
+export const CHIP_TONE: Record<EventType | 'FAILED' | 'OK', string> = {
+  SPAWN: 'bg-clay text-clay-foreground border-clay',
+  PROMPT: 'bg-surface text-link border-link',
+  COMPLETION: 'bg-foreground text-background border-foreground',
+  MEMORY: 'bg-surface-2',
+  TRANSFER: 'bg-surface text-muted-foreground',
+  HALT: 'bg-ink text-muted-foreground',
+  DEPLOY: 'bg-ink text-clay border-clay',
+  FAILED: 'bg-surface text-destructive border-destructive',
+  OK: 'bg-clay text-clay-foreground border-clay',
 }
 
 export function Chip({
@@ -95,6 +95,33 @@ export function Chip({
   children?: ReactNode
 }) {
   return <span className={`chip ${kind ? CHIP_TONE[kind] : ''}`}>{children ?? kind}</span>
+}
+
+const TIER_TONE: Record<Tier, string> = {
+  opus: 'bg-clay text-clay-foreground border-clay',
+  sonnet: 'bg-foreground text-background border-foreground',
+  haiku: 'bg-surface-2',
+}
+
+export function TierChip({ tier }: { tier: Tier }) {
+  return <span className={`chip ${TIER_TONE[tier]}`}>{tier}</span>
+}
+
+export function StatusDot({ status }: { status: AgentStatus }) {
+  const tone =
+    status === 'thinking'
+      ? 'bg-clay blink'
+      : status === 'idle'
+        ? 'bg-foreground'
+        : status === 'sleeping'
+          ? 'bg-muted-foreground'
+          : 'bg-hair'
+  return (
+    <span className="inline-flex items-center gap-1 font-mono text-[10px]">
+      <span aria-hidden className={`inline-block h-[7px] w-[7px] ${tone}`} />
+      {status}
+    </span>
+  )
 }
 
 export function Btn({
@@ -146,7 +173,7 @@ export function Stat({
   )
   if (href) {
     return (
-      <Link href={href} className="block border-r border-hair px-2 py-1 no-underline hover:bg-[#f6ffd0]">
+      <Link href={href} className="block border-r border-hair px-2 py-1 text-foreground no-underline hover:bg-surface-2 hover:text-foreground">
         {body}
       </Link>
     )
@@ -192,61 +219,60 @@ export function AddressLink({
   )
 }
 
-export function ObjectLink({ object }: { object: GifObject }) {
+export function AgentLink({ agent }: { agent: Agent }) {
   return (
-    <Link href={`/object/${object.slug}/${object.tokenId}`} className="font-mono">
-      {object.name}
+    <Link href={`/agent/${agent.swarm}/${agent.id}`} className="font-mono">
+      {agent.name}
     </Link>
   )
 }
 
-export function CollectionLink({ slug }: { slug: string }) {
-  const c = collections.find((x) => x.slug === slug)
-  if (!c) return <span className="font-mono text-muted-foreground">unknown</span>
+export function SwarmLink({ slug }: { slug: string }) {
+  const s = swarms.find((x) => x.slug === slug)
+  if (!s) return <span className="font-mono text-muted-foreground">unknown</span>
   return (
-    <Link href={`/collections/${slug}`} className="font-mono">
-      {c.name}
+    <Link href={`/swarms/${slug}`} className="font-mono">
+      {s.name}
     </Link>
   )
 }
 
-/* ------------------------------------------------------------------ sprite */
+/* ------------------------------------------------------------------- glyph */
 
-export { Sprite }
+export { Glyph }
 
-export function ObjectSprite({
-  object,
+export function AgentGlyph({
+  agent,
   size = 32,
   fluid = false,
   className = '',
 }: {
-  object: GifObject
+  agent: Agent
   size?: number
   fluid?: boolean
   className?: string
 }) {
-  const col = collections.find((c) => c.slug === object.slug)
   return (
-    <Sprite
-      sheet={col?.sheet ?? '/objects/gifcats.png'}
-      cell={object.cell}
-      filter={object.filter}
+    <Glyph
+      seed={agent.address}
+      tier={agent.tier}
+      halted={agent.halted}
       size={size}
       fluid={fluid}
       className={className}
-      title={object.name}
+      title={agent.name}
     />
   )
 }
 
-export function ObjectThumbLink({ object, size = 40 }: { object: GifObject; size?: number }) {
+export function AgentThumbLink({ agent, size = 40 }: { agent: Agent; size?: number }) {
   return (
     <Link
-      href={`/object/${object.slug}/${object.tokenId}`}
+      href={`/agent/${agent.swarm}/${agent.id}`}
       className="inline-block shrink-0 no-underline hover:bg-transparent"
-      title={object.name}
+      title={agent.name}
     >
-      <ObjectSprite object={object} size={size} />
+      <AgentGlyph agent={agent} size={size} />
     </Link>
   )
 }
@@ -353,21 +379,15 @@ export function BarChart({
         <line x1="0" y1={height / 2} x2={total} y2={height / 2} stroke="var(--hair)" strokeWidth="1" strokeDasharray="2 3" />
         {data.map((v, i) => {
           const h = Math.max(1, (v / max) * (height - 4))
-          return (
-            <rect
-              key={i}
-              x={i * (w + gap)}
-              y={height - h}
-              width={w}
-              height={h}
-              fill={color}
-            />
-          )
+          return <rect key={i} x={i * (w + gap)} y={height - h} width={w} height={h} fill={color} />
         })}
       </svg>
       <div className="mt-1 flex justify-between font-mono text-[9px] text-muted-foreground">
         <span>{labels[0]}</span>
-        <span>peak {max.toLocaleString('en-US')}{unit}</span>
+        <span>
+          peak {max.toLocaleString('en-US')}
+          {unit}
+        </span>
         <span>{labels[labels.length - 1]}</span>
       </div>
     </div>
@@ -386,9 +406,9 @@ export function Bars({
           <tr key={i}>
             <td className="w-[150px]">{r.label}</td>
             <td className="w-full">
-              <span className="block h-[9px] w-full border border-hair bg-surface-2">
+              <span className="block h-[9px] w-full border border-hair bg-ink">
                 <span
-                  className="block h-full bg-lime"
+                  className="block h-full bg-clay"
                   style={{ width: `${Math.max(2, (r.value / r.max) * 100)}%` }}
                 />
               </span>

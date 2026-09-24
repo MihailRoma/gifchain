@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react'
 import { blockTimeAt, heightAtTime } from '@/lib/chain/constants'
-import { dec, secondsUntil } from '@/lib/chain/format'
-import { liveBlockAt, type SpriteRef } from '@/lib/chain/live'
+import { dec, secondsUntil, tok } from '@/lib/chain/format'
+import { liveBlockAt, type AgentRef } from '@/lib/chain/live'
 import { Dash, LiveChip, TxLink } from './primitives'
 import { useNow } from './now-provider'
 
@@ -13,7 +13,7 @@ import { useNow } from './now-provider'
  * transactions, and they disappear from this table at the moment they are
  * sealed into the tip, which is what makes the two panels agree.
  */
-export function LiveMempool({ pool, limit = 8 }: { pool: SpriteRef[]; limit?: number }) {
+export function LiveMempool({ pool, limit = 8 }: { pool: AgentRef[]; limit?: number }) {
   const now = useNow()
   const head = heightAtTime(now)
   const pending = useMemo(() => liveBlockAt(head + 1, pool).txs.slice(0, limit), [head, pool, limit])
@@ -26,6 +26,7 @@ export function LiveMempool({ pool, limit = 8 }: { pool: SpriteRef[]; limit?: nu
           <tr>
             <th>pending tx</th>
             <th>type</th>
+            <th>tokens</th>
             <th>fee</th>
             <th>seals in</th>
           </tr>
@@ -39,6 +40,7 @@ export function LiveMempool({ pool, limit = 8 }: { pool: SpriteRef[]; limit?: nu
               <td>
                 <LiveChip kind={t.kind} />
               </td>
+              <td className="num">{t.tokens !== null ? tok(t.tokens) : <Dash />}</td>
               <td className="num">{dec(t.fee, 4)}</td>
               <td className="num text-muted-foreground" suppressHydrationWarning>
                 {secondsUntil(sealsAt, now)}
@@ -47,8 +49,8 @@ export function LiveMempool({ pool, limit = 8 }: { pool: SpriteRef[]; limit?: nu
           ))}
           {pending.length === 0 ? (
             <tr>
-              <td colSpan={4} className="text-muted-foreground">
-                mempool empty {'\u2014'} next block will be empty <Dash />
+              <td colSpan={5} className="text-muted-foreground">
+                mempool empty {'\u2014'} no one is thinking right now <Dash />
               </td>
             </tr>
           ) : null}

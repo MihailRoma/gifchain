@@ -3,10 +3,10 @@
 import Link from 'next/link'
 import { useMemo } from 'react'
 import { heightAtTime } from '@/lib/chain/constants'
-import { dec, num } from '@/lib/chain/format'
-import { liveTxsTo, type SpriteRef } from '@/lib/chain/live'
+import { claude, dec, num, tok } from '@/lib/chain/format'
+import { liveTxsTo, type AgentRef } from '@/lib/chain/live'
 import { Age } from './age'
-import { AddrLink, Dash, LiveChip, RefThumb, TxLink } from './primitives'
+import { AddrLink, Dash, LiveChip, RefThumb, TxLink, poolIndex } from './primitives'
 import { useNow } from './now-provider'
 
 /** Newest transactions at the tip, recomputed from the head on every tick. */
@@ -15,13 +15,14 @@ export function LiveTxs({
   limit = 20,
   showBlock = true,
 }: {
-  pool: SpriteRef[]
+  pool: AgentRef[]
   limit?: number
   showBlock?: boolean
 }) {
   const now = useNow()
   const head = heightAtTime(now)
   const txs = useMemo(() => liveTxsTo(head, limit, pool), [head, limit, pool])
+  const agents = useMemo(() => poolIndex(pool), [pool])
 
   return (
     <div className="overflow-x-auto">
@@ -30,7 +31,7 @@ export function LiveTxs({
           <tr>
             <th>tx hash</th>
             <th>type</th>
-            <th>object</th>
+            <th>agent</th>
             {showBlock && <th>block</th>}
             <th>age</th>
             <th>from</th>
@@ -48,7 +49,18 @@ export function LiveTxs({
               <td>
                 <LiveChip kind={t.status === 'failed' ? 'FAILED' : t.kind} />
               </td>
-              <td>{t.ref ? <RefThumb ref={t.ref} /> : <Dash />}</td>
+              <td>
+                {t.ref ? (
+                  <span className="flex items-center gap-1">
+                    <RefThumb ref={t.ref} />
+                    <Link href={`/agent/${t.ref.swarm}/${t.ref.id}`} className="font-mono">
+                      {t.ref.name}
+                    </Link>
+                  </span>
+                ) : (
+                  <Dash />
+                )}
+              </td>
               {showBlock && (
                 <td>
                   <Link href={`/block/${t.height}`} className="font-mono">
@@ -60,12 +72,14 @@ export function LiveTxs({
                 <Age ts={t.ts} />
               </td>
               <td>
-                <AddrLink address={t.from} />
+                <AddrLink address={t.from} agents={agents} />
               </td>
               <td>
-                <AddrLink address={t.to} />
+                <AddrLink address={t.to} agents={agents} />
               </td>
-              <td className="num">{t.price === null ? <Dash /> : `${dec(t.price)} GIF`}</td>
+              <td className="num">
+                {t.tokens !== null ? tok(t.tokens) : t.amount !== null ? claude(t.amount) : <Dash />}
+              </td>
               <td className="num text-muted-foreground">{dec(t.fee, 4)}</td>
             </tr>
           ))}

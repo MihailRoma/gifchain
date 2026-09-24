@@ -4,12 +4,15 @@
  *
  * Change ROOT_DOMAIN and everything else follows.
  */
-export const ROOT_DOMAIN = 'gifchain.art'
+export const ROOT_DOMAIN = 'claudechain.ai'
 export const EXPLORER_SUBDOMAIN = 'explorer'
 export const EXPLORER_DOMAIN = `${EXPLORER_SUBDOMAIN}.${ROOT_DOMAIN}`
 
 export const ROOT_URL = `https://${ROOT_DOMAIN}`
 export const EXPLORER_URL = `https://${EXPLORER_DOMAIN}`
+
+/** Where the $CLAUDECHAIN token lives. Swap this when the launchpad moves. */
+export const TOKEN_URL = 'https://ponsfamily.com/launchpad/0x7f166fb1b5bdd2e94e89d7bb35a13d85ec74850f'
 
 /** The explorer's own home page, served at the root of the explorer domain. */
 export const EXPLORER_HOME = '/explorer'
@@ -19,8 +22,8 @@ export const EXPLORER_HOME = '/explorer'
  * live in one deployment, so ownership is declared here and enforced by
  * `proxy.ts`: on the protocol domain these redirect to the explorer domain.
  *
- * Object and collection pages are deliberately absent — they are shared, and
- * take whichever chrome the current host implies.
+ * Agent and swarm pages are deliberately absent — they are shared, and take
+ * whichever chrome the current host implies.
  */
 const EXPLORER_SEGMENTS = [
   'explorer',
@@ -43,7 +46,7 @@ export function isExplorerPath(pathname: string): boolean {
 
 /**
  * Hosts that are not the real production domain (v0 previews, localhost,
- * *.vercel.app). On these there is no `explore.` subdomain to send people to,
+ * *.vercel.app). On these there is no `explorer.` subdomain to send people to,
  * so the explorer stays reachable at its /explorer path instead.
  */
 export function isCanonicalHost(hostname: string): boolean {

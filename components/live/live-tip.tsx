@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react'
 import { blockIntervalMs, blockTimeAt, heightAtTime } from '@/lib/chain/constants'
-import { dec, num, secondsUntil } from '@/lib/chain/format'
-import { liveTipStats, type SpriteRef } from '@/lib/chain/live'
+import { dec, num, secondsUntil, tok } from '@/lib/chain/format'
+import { liveTipStats, type AgentRef } from '@/lib/chain/live'
 import { useNow } from './now-provider'
 
 /** Head height on its own, for the header strip. */
@@ -27,7 +27,7 @@ function SealBar({ head }: { head: number }) {
     <span className="mt-1 block h-[3px] w-full bg-hair" aria-hidden="true">
       <span
         key={head}
-        className="seal-bar block h-full bg-foreground"
+        className="seal-bar block h-full bg-clay"
         style={{ animationDuration: `${duration}ms` }}
       />
     </span>
@@ -38,7 +38,7 @@ function SealBar({ head }: { head: number }) {
  * The network strip at the top of the explorer: head height, the countdown to
  * the next seal, and rolling throughput measured off the tip.
  */
-export function LiveTip({ pool }: { pool: SpriteRef[] }) {
+export function LiveTip({ pool }: { pool: AgentRef[] }) {
   const now = useNow()
   const head = heightAtTime(now)
   const stats = useMemo(() => liveTipStats(head, pool, 120), [head, pool])
@@ -51,7 +51,7 @@ export function LiveTip({ pool }: { pool: SpriteRef[] }) {
       sub: `sealed ${Math.max(0, Math.round((now - blockTimeAt(head)) / 1000))}s ago`,
     },
     {
-      label: 'next block',
+      label: 'next seal',
       value: secondsUntil(nextAt, now),
       sub: `target ${(blockIntervalMs(head + 1) / 1000).toFixed(1)}s`,
       bar: true,
@@ -63,14 +63,14 @@ export function LiveTip({ pool }: { pool: SpriteRef[] }) {
     },
     { label: 'throughput', value: `${stats.tps.toFixed(2)} tps`, sub: `${num(stats.txs)} tx / 120` },
     {
-      label: 'base fee',
-      value: `${stats.baseFee.toFixed(2)} ngif`,
-      sub: `${(stats.fullness * 100).toFixed(1)}% full`,
+      label: 'token rate',
+      value: `${tok(Math.round(stats.tokensPerSec))}/s`,
+      sub: `${tok(stats.tokens)} / 120`,
     },
     {
-      label: 'fees paid',
-      value: `${dec(stats.fees, 3)} GIF`,
-      sub: 'last 120 blocks',
+      label: 'base fee',
+      value: `${stats.baseFee.toFixed(2)} ncl`,
+      sub: `${(stats.fullness * 100).toFixed(1)}% full \u00b7 ${dec(stats.fees, 3)} CLAUDE paid`,
     },
   ]
 
